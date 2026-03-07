@@ -1,4 +1,4 @@
-# fetch_news.py
+# fetch_news.py (БЫСТРАЯ ВЕРСИЯ)
 import feedparser
 from bs4 import BeautifulSoup
 import json
@@ -14,9 +14,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # ============ НАСТРОЙКИ ============
-TIMEOUT = 5  # Таймаут для запросов в секундах
-MAX_ARTICLES_PER_FEED = 3  # Максимум статей с одной ленты
-MAX_PARAGRAPHS = 6  # Максимум абзацев в статье
+TIMEOUT = 3  # Таймаут 3 секунды
+MAX_ARTICLES_PER_FEED = 2  # Только 2 статьи с ленты
+MAX_PARAGRAPHS = 4  # Только 4 абзаца
 
 # Инициализация Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
@@ -25,246 +25,66 @@ db = firestore.client()
 
 # ============ RSS ИСТОЧНИКИ ============
 RSS_FEEDS = {
-    'Политика': [
-        'https://lenta.ru/rss/news/politics',
-        'https://ria.ru/export/rss2/politics/index.xml',
-        'https://tass.ru/rss/v2.xml'
-    ],
-    'Экономика': [
-        'https://lenta.ru/rss/news/economics',
-        'https://ria.ru/export/rss2/economy/index.xml',
-        'https://www.rbc.ru/rss/'
-    ],
-    'Технологии': [
-        'https://lenta.ru/rss/news/technology',
-        'https://ria.ru/export/rss2/technology/index.xml',
-        'https://habr.com/ru/rss/news/?fl=ru'
-    ],
-    'Авто': [
-        'https://lenta.ru/rss/news/auto',
-        'https://motor.ru/rss',
-        'https://www.autonews.ru/export/rss2/news/index.xml'
-    ],
-    'Киберспорт': [
-        'https://www.cybersport.ru/rss',
-        'https://stopgame.ru/rss/news.xml',
-        'https://gameguru.ru/rss/news.xml'
-    ],
-    'Культура': [
-        'https://lenta.ru/rss/news/art',
-        'https://ria.ru/export/rss2/culture/index.xml',
-        'https://www.mk.ru/rss/culture/index.xml'
-    ],
-    'Спорт': [
-        'https://lenta.ru/rss/news/sport',
-        'https://ria.ru/export/rss2/sport/index.xml',
-        'https://www.championat.com/news/rss/'
-    ]
+    'Политика': ['https://lenta.ru/rss/news/politics', 'https://ria.ru/export/rss2/politics/index.xml'],
+    'Экономика': ['https://lenta.ru/rss/news/economics', 'https://ria.ru/export/rss2/economy/index.xml'],
+    'Технологии': ['https://lenta.ru/rss/news/technology', 'https://ria.ru/export/rss2/technology/index.xml'],
+    'Авто': ['https://lenta.ru/rss/news/auto', 'https://motor.ru/rss'],
+    'Киберспорт': ['https://www.cybersport.ru/rss', 'https://stopgame.ru/rss/news.xml'],
+    'Культура': ['https://lenta.ru/rss/news/art', 'https://ria.ru/export/rss2/culture/index.xml'],
+    'Спорт': ['https://lenta.ru/rss/news/sport', 'https://ria.ru/export/rss2/sport/index.xml']
 }
 
-# ============ ФУНКЦИЯ ДЛЯ ИЗВЛЕЧЕНИЯ КАРТИНОК ============
 def extract_images_from_entry(entry):
-    """Извлекает ВСЕ реальные картинки из RSS записи"""
+    """Быстрое извлечение картинок"""
     images = []
-    
     if hasattr(entry, 'media_content'):
         for media in entry.media_content:
             if media.get('url'):
-                img_url = media['url']
-                if img_url.startswith(('http://', 'https://')):
-                    images.append(img_url)
-                    print(f"      📸 RSS media: {img_url[:60]}...")
-    
-    if hasattr(entry, 'enclosures'):
-        for enclosure in entry.enclosures:
-            if enclosure.get('type', '').startswith('image'):
-                img_url = enclosure.get('href', enclosure.get('url'))
-                if img_url and img_url.startswith(('http://', 'https://')):
-                    images.append(img_url)
-                    print(f"      📸 RSS enclosure: {img_url[:60]}...")
-    
-    summary = entry.get('summary', '') or entry.get('description', '')
-    if summary:
-        soup = BeautifulSoup(summary, 'html.parser')
-        for img in soup.find_all('img'):
-            if img.get('src'):
-                src = img['src']
-                if src.startswith('//'):
-                    src = 'https:' + src
-                    images.append(src)
-                    print(f"      📸 RSS summary: {src[:60]}...")
-                elif src.startswith(('http://', 'https://')):
-                    images.append(src)
-                    print(f"      📸 RSS summary: {src[:60]}...")
-    
-    seen = set()
-    unique = []
-    for img in images:
-        if img not in seen:
-            seen.add(img)
-            unique.append(img)
-    
-    return unique
+                images.append(media['url'])
+    return list(dict.fromkeys(images))
 
-# ============ ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ПОЛНОЙ СТАТЬИ ============
 def fetch_full_article(url):
-    """Загружает полный текст статьи и дополнительные картинки с таймаутом"""
+    """Быстрая загрузка статьи с таймаутом"""
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        
-        # Добавляем таймаут
+        headers = {'User-Agent': 'Mozilla/5.0'}
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
-        response.encoding = 'utf-8'
-        
         if response.status_code != 200:
-            print(f"      ⚠️ HTTP {response.status_code}")
             return None, []
         
         soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Удаляем мусор
-        for element in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe']):
+        for element in soup.find_all(['script', 'style']):
             element.decompose()
         
-        # Ищем картинки
-        article_images = []
-        for img in soup.find_all('img'):
-            if img.get('src'):
-                src = img['src']
-                if 'avatar' in src or 'icon' in src or 'logo' in src:
-                    continue
-                
-                if src.startswith('//'):
-                    src = 'https:' + src
-                    article_images.append(src)
-                elif src.startswith(('http://', 'https://')):
-                    article_images.append(src)
-                elif src.startswith('/'):
-                    parsed = urlparse(url)
-                    src = f"{parsed.scheme}://{parsed.netloc}{src}"
-                    article_images.append(src)
+        text = soup.get_text()
+        text = re.sub(r'\n\s*\n', '\n\n', text)
+        text = re.sub(r' +', ' ', text)
+        return text[:1000], []  # Только первые 1000 символов
         
-        # Селекторы для текста
-        content_selectors = [
-            '.topic-body__content', '.b-topic__content',
-            '.article__text', '.article-text',
-            '.text-content', '.news-content',
-            '.post-content', '.entry-content',
-            'article', '[itemprop="articleBody"]',
-            '.material-content', '.news-body'
-        ]
-        
-        content = None
-        for selector in content_selectors:
-            content = soup.select_one(selector)
-            if content:
-                break
-        
-        if not content:
-            # Если не нашли, собираем параграфы
-            paragraphs = soup.find_all('p')
-            if len(paragraphs) > 3:
-                content_text = []
-                for p in paragraphs:
-                    text = p.get_text().strip()
-                    if len(text) > 50:
-                        content_text.append(text)
-                if content_text:
-                    text = '\n\n'.join(content_text)
-                    text = re.sub(r'\n\s*\n', '\n\n', text)
-                    text = re.sub(r' +', ' ', text)
-                    return text, article_images[:5]
-        
-        if content:
-            text = content.get_text()
-            text = re.sub(r'\n\s*\n', '\n\n', text)
-            text = re.sub(r' +', ' ', text)
-            text = text.strip()
-            return text, article_images[:5]
-        
-        return None, article_images[:5]
-        
-    except requests.exceptions.Timeout:
-        print(f"      ⏱️ Таймаут ({TIMEOUT}с): {url[:60]}...")
-        return None, []
-    except Exception as e:
-        print(f"      ⚠️ Ошибка: {e}")
+    except:
         return None, []
 
-# ============ ФУНКЦИЯ ПЕРЕФРАЗИРОВАНИЯ ============
 def ai_rewrite_text(text):
-    """Переписывает текст, делая его уникальным"""
-    if not text or len(text) < 100:
+    if not text or len(text) < 50:
         return text
     
-    synonyms = {
-        'сказал': ['заявил', 'отметил', 'подчеркнул', 'сообщил', 'прокомментировал'],
-        'сообщил': ['проинформировал', 'уведомил', 'объявил', 'огласил', 'доложил'],
-        'произошло': ['случилось', 'состоялось', 'имело место', 'произошло событие'],
-        'начался': ['стартовал', 'открылся', 'запустился', 'взял старт'],
-        'закончился': ['завершился', 'финишировал', 'подошел к концу', 'окончился'],
-        'новый': ['свежий', 'актуальный', 'последний', 'современный'],
-        'важный': ['значительный', 'ключевой', 'главный', 'существенный'],
-        'россия': ['РФ', 'Российская Федерация', 'наша страна', 'отечество'],
-        'российский': ['отечественный', 'российский', 'национальный']
-    }
-    
-    words = text.split()
-    new_words = []
-    
-    for word in words:
-        word_lower = word.lower().strip('.,!?()"«»')
-        if word_lower in synonyms and random.random() > 0.5:
-            replacement = random.choice(synonyms[word_lower])
-            if word[0].isupper():
-                replacement = replacement.capitalize()
-            new_words.append(replacement)
-        else:
-            new_words.append(word)
-    
-    new_text = ' '.join(new_words)
-    
-    # Добавляем вводные конструкции
-    intros = [
-        'По информации источников, ',
-        'Как стало известно, ',
-        'Согласно полученным данным, ',
-        'По сообщениям очевидцев, '
-    ]
-    
-    sentences = re.split(r'(?<=[.!?])\s+', new_text)
-    result = []
-    
-    for i, sentence in enumerate(sentences):
-        if i == 0 and random.random() > 0.6:
-            intro = random.choice(intros)
-            result.append(intro + sentence[0].lower() + sentence[1:])
-        else:
-            result.append(sentence)
-    
-    return ' '.join(result)
+    synonyms = {'сказал': 'заявил', 'сообщил': 'проинформировал'}
+    for old, new in synonyms.items():
+        text = text.replace(old, new)
+    return text
 
-# ============ ОСНОВНАЯ ФУНКЦИЯ ============
 def fetch_and_save():
-    """Собирает новости и сохраняет в JSON и Firebase"""
-    print(f"\n[{datetime.now()}] 🔴 НАЧАЛО СБОРА НОВОСТЕЙ")
+    print(f"\n[{datetime.now()}] 🔴 НАЧАЛО СБОРА")
     
     json_path = 'public/news_data.json'
     
-    # Загружаем существующие ссылки
     existing_links = set()
     if os.path.exists(json_path):
-        try:
-            with open(json_path, 'r', encoding='utf-8') as f:
-                old_news = json.load(f)
-                for item in old_news:
-                    if item.get('originalLink'):
-                        existing_links.add(item['originalLink'])
+        with open(json_path, 'r', encoding='utf-8') as f:
+            old_news = json.load(f)
+            for item in old_news:
+                if item.get('originalLink'):
+                    existing_links.add(item['originalLink'])
             print(f"📚 Загружено {len(old_news)} старых новостей")
-        except:
-            old_news = []
     else:
         old_news = []
     
@@ -272,74 +92,34 @@ def fetch_and_save():
     new_count = 0
     
     for category, feeds in RSS_FEEDS.items():
-        print(f"\n📡 Категория: {category}")
-        
+        print(f"\n📡 {category}")
         for feed_url in feeds:
-            print(f"  🔍 RSS: {feed_url}")
             try:
                 feed = feedparser.parse(feed_url)
-                
-                if not feed.entries:
-                    print(f"    ⚠️ Нет записей")
-                    continue
-                
                 for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
                     if entry.link in existing_links:
-                        print(f"    ⏭️ Уже есть: {entry.title[:40]}...")
                         continue
                     
-                    print(f"    ✅ НОВАЯ: {entry.title[:60]}...")
+                    print(f"    ✅ {entry.title[:40]}...")
                     
-                    # Получаем картинки из RSS
-                    rss_images = extract_images_from_entry(entry)
+                    images = extract_images_from_entry(entry)
+                    full_text, _ = fetch_full_article(entry.link)
                     
-                    # Загружаем полную статью
-                    full_text, article_images = fetch_full_article(entry.link)
+                    description = entry.get('summary', '')[:100]
                     
-                    # Объединяем картинки
-                    all_images = []
-                    if rss_images:
-                        all_images.extend(rss_images)
-                    if article_images:
-                        all_images.extend(article_images)
-                    
-                    # Убираем дубликаты
-                    unique_images = []
-                    seen = set()
-                    for img in all_images:
-                        if img not in seen:
-                            seen.add(img)
-                            unique_images.append(img)
-                    
-                    print(f"      🖼️ ВСЕГО КАРТИНОК: {len(unique_images)}")
-                    
-                    # Получаем описание
-                    description = entry.get('summary', '') or entry.get('description', '')
-                    if description:
-                        soup = BeautifulSoup(description, 'html.parser')
-                        description = soup.get_text()[:200]
-                    
-                    # Формируем текст статьи
                     if full_text:
-                        rewritten = ai_rewrite_text(full_text)
-                        paragraphs = rewritten.split('\n\n')[:MAX_PARAGRAPHS]
-                        content_html = ''
-                        for p in paragraphs:
-                            if p.strip():
-                                content_html += f'<p>{p.strip()}</p>\n'
-                        print(f"      📝 Текст сохранён: {len(content_html)} символов")
+                        content = ai_rewrite_text(full_text)
+                        content_html = f'<p>{content[:500]}</p>'
                     else:
-                        content_html = f'<p>{description}</p>\n<p>Читайте подробности на ТОЛК.</p>'
-                        print(f"      ⚠️ Текст не найден, использую описание")
+                        content_html = f'<p>{description}</p>'
                     
-                    # Создаём запись
                     news_item = {
                         'id': hashlib.md5(entry.link.encode()).hexdigest()[:16],
-                        'title': entry.title[:200],
-                        'description': description[:200] + '...' if len(description) > 200 else description,
+                        'title': entry.title[:150],
+                        'description': description,
                         'content': content_html,
                         'category': category,
-                        'images': unique_images[:5],
+                        'images': images[:2],
                         'originalLink': entry.link,
                         'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
                         'timestamp': datetime.now().isoformat()
@@ -348,40 +128,20 @@ def fetch_and_save():
                     all_news.append(news_item)
                     existing_links.add(entry.link)
                     new_count += 1
-                    
-                    # Сохраняем в Firebase
-                    try:
-                        fb_data = news_item.copy()
-                        fb_data['timestamp'] = firestore.SERVER_TIMESTAMP
-                        db.collection('news').add(fb_data)
-                    except:
-                        pass
-                    
-                    time.sleep(1)  # Уменьшил задержку до 1 секунды
+                    time.sleep(1)
                     
             except Exception as e:
-                print(f"    ❌ Ошибка: {e}")
+                print(f"    ❌ Ошибка: {feed_url}")
                 continue
     
-    # Сортируем и сохраняем
     all_news.sort(key=lambda x: x['timestamp'], reverse=True)
     all_news = all_news[:200]
     
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(all_news, f, ensure_ascii=False, indent=2)
     
-    # Статистика
-    news_with_images = sum(1 for item in all_news if item.get('images'))
-    news_with_text = sum(1 for item in all_news if len(item.get('content', '')) > 100)
-    
-    print(f"\n{'='*50}")
-    print(f"✅ ИТОГИ:")
-    print(f"📊 Всего новостей: {len(all_news)}")
-    print(f"🖼️ С картинками: {news_with_images}")
-    print(f"📝 С текстом: {news_with_text}")
-    print(f"➕ Добавлено новых: {new_count}")
-    print(f"{'='*50}")
+    print(f"\n✅ Добавлено новых: {new_count}")
+    print(f"📊 Всего: {len(all_news)}")
 
-# ============ ЗАПУСК ============
 if __name__ == '__main__':
     fetch_and_save()
