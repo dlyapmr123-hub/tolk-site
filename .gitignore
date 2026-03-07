@@ -1,0 +1,16 @@
+# Firebase
+serviceAccountKey.json
+.firebase/
+
+# Секретные файлы
+public/config.js
+
+# Логи и временные файлы
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+
+# GitHub Actions кэш
+.github/actions/

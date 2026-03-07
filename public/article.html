@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- Динамический title для статьи -->
+<title>ТОЛК — {ЗАГОЛОВОК_СТАТЬИ}</title>
+
+<!-- Мета-описание для статьи -->
+<meta name="description" content="{ОПИСАНИЕ_СТАТЬИ} Читайте подробности на ТОЛК.">
+
+<!-- Open Graph для статьи -->
+<meta property="og:title" content="{ЗАГОЛОВОК_СТАТЬИ} | ТОЛК">
+<meta property="og:description" content="{ОПИСАНИЕ_СТАТЬИ}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://tolk-1.web.app/article.html?id={ID_СТАТЬИ}">
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТОЛК — статья</title>
+    <script src="/config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        :root {
+    --bg-color: #f8fafc;
+    --text-color: #0f172a;
+    --card-bg: white;
+    --border-color: #e2e8f0;
+    --secondary-text: #64748b;
+    --hover-bg: #f1f5f9;
+    --placeholder-bg: white;
+    --placeholder-border: #e2e8f0;
+    --placeholder-text: #0f172a;
+    --placeholder-logo: #3b82f6;
+    --placeholder-cat-bg: #f1f5f9;
+    --placeholder-cat-text: #64748b;
+    --ticker-bg: white;
+    --ticker-text: #0f172a;
+    --ticker-span: #3b82f6;
+    --breaking-bg: #f1f5f9;
+    --breaking-text: #0f172a;
+    --footer-bg: #0f172a;
+    --footer-text: #94a3b8;
+    --topbar-bg: #0f172a;        /* ДОБАВИТЬ - темный фон для верхней панели */
+    --topbar-text: #e2e8f0;      /* ДОБАВИТЬ - светлый текст */
+    --weather-text: #e2e8f0;     /* ДОБАВИТЬ - цвет погоды */
+}
+        
+        body.dark-mode {
+    --bg-color: #0f172a;
+    --text-color: #f1f5f9;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --secondary-text: #94a3b8;
+    --hover-bg: #334155;
+    --placeholder-bg: #1e293b;
+    --placeholder-border: #334155;
+    --placeholder-text: #f1f5f9;
+    --placeholder-logo: #60a5fa;
+    --placeholder-cat-bg: #0f172a;
+    --placeholder-cat-text: #94a3b8;
+    --ticker-bg: #1e293b;
+    --ticker-text: #f1f5f9;
+    --ticker-span: #60a5fa;
+    --breaking-bg: #334155;
+    --breaking-text: #f1f5f9;
+    --footer-bg: #0f172a;
+    --footer-text: #94a3b8;
+    --topbar-bg: #0f172a;        /* ДОБАВИТЬ - темный фон */
+    --topbar-text: #94a3b8;      /* ДОБАВИТЬ - текст как в светлой теме */
+    --weather-text: #e2e8f0;     /* ДОБАВИТЬ - цвет погоды */
+}
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Кнопка переключения темы */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        
+        .theme-toggle .sun {
+            display: none;
+        }
+        
+        body.dark-mode .theme-toggle .sun {
+            display: inline;
+        }
+        
+        body.dark-mode .theme-toggle .moon {
+            display: none;
+        }
+        
+        .top-bar {
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    padding: 0.6rem 2rem;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1e293b;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.date {
+    color: var(--topbar-text);
+}
+
+.weather span {
+    color: var(--weather-text);
+}
+
+.weather span::before {
+    content: "🌡️";
+    margin-right: 0.3rem;
+    color: #f59e0b;
+}
+        
+        .main-nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+        
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 0.2rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-links a {
+            color: var(--secondary-text);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .nav-links a:hover {
+            background: var(--hover-bg);
+            color: var(--text-color);
+        }
+        
+        .nav-links a.active {
+            background: var(--text-color);
+            color: var(--bg-color);
+        }
+        
+       .ticker-bar {
+    background: var(--ticker-bg);
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+}
+
+.ticker-content {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0.8rem 2rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+        
+        .ticker-item {
+            color: var(--ticker-text);
+            font-weight: 500;
+        }
+        
+        .ticker-item span {
+            color: var(--ticker-span);
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .breaking-news {
+            background: var(--breaking-bg);
+            padding: 0.8rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            white-space: nowrap;
+            transition: background-color 0.3s ease;
+        }
+        
+        .breaking-content {
+            display: inline-block;
+            animation: scroll 50s linear infinite;
+        }
+        
+        .breaking-content span {
+            margin-right: 3rem;
+            color: var(--breaking-text);
+            font-size: 0.9rem;
+        }
+        
+        .breaking-content span::before {
+            content: "⚡";
+            margin-right: 0.5rem;
+            color: #ef4444;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .article {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: background-color 0.3s ease;
+        }
+        
+        .article img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .article-content {
+            padding: 2.5rem;
+        }
+        
+        .article-category {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            background: #3b82f6;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        
+        .article h1 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            line-height: 1.3;
+        }
+        
+        .article-meta {
+            color: var(--secondary-text);
+            font-size: 0.9rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .article-text {
+            line-height: 1.8;
+            color: var(--text-color);
+        }
+        
+        .article-text p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin: 2rem 0 1rem;
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-button:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 2rem;
+            margin-top: 3rem;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .footer p:last-child {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: var(--secondary-text);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #ef4444;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .related-item {
+            background: var(--hover-bg);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s, background-color 0.3s ease;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+        
+        .related-item:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+        }
+        
+        /* Стили для заглушек картинок */
+        .placeholder-image {
+            width: 100%;
+            height: 400px;
+            background: var(--placeholder-bg);
+            border: 2px dashed var(--placeholder-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--placeholder-text);
+            font-family: Arial, sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .placeholder-logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--placeholder-logo);
+            letter-spacing: -0.5px;
+        }
+        
+        .placeholder-category {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--placeholder-cat-text);
+            background: var(--placeholder-cat-bg);
+            padding: 0.3rem 1.5rem;
+            border-radius: 30px;
+        }
+        
+        .placeholder-message {
+            font-size: 0.9rem;
+            color: var(--secondary-text);
+            margin-top: 1rem;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .article img {
+                height: 250px;
+            }
+            .placeholder-image {
+                height: 250px;
+            }
+            .placeholder-logo {
+                font-size: 2rem;
+            }
+            .article-content {
+                padding: 1.5rem;
+            }
+            .article h1 {
+                font-size: 1.8rem;
+            }
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+           .top-bar {
+    background: var(--card-bg);
+    color: var(--secondary-text);
+}
+            .weather {
+                justify-content: center;
+            }
+            
+            .theme-toggle {
+                bottom: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Кнопка переключения темы -->
+    <div class="theme-toggle" id="themeToggle">
+        <span class="moon">🌙</span>
+        <span class="sun">☀️</span>
+    </div>
+
+    <div id="app">
+        <div class="top-bar">
+            <div class="date" id="currentDate"></div>
+            <div class="weather" id="weather">
+                <span id="weatherMsk">Москва: загрузка...</span>
+                <span id="weatherSpb">СПб: загрузка...</span>
+            </div>
+        </div>
+        
+        <div class="main-nav">
+            <div class="nav-container">
+                <a href="/" class="logo">ТОЛК</a>
+                <div class="nav-links" id="navLinks">
+                    <a href="/" class="nav-link">Главная</a>
+                </div>
+            </div>
+        </div>
+        
+   <div class="ticker-bar" id="currencyTicker">
+    <div class="ticker-content">
+        <span class="ticker-item">USD <span id="usdRate">загрузка...</span></span>
+        <span class="ticker-item">EUR <span id="eurRate">загрузка...</span></span>
+        <span class="ticker-item">CNY <span id="cnyRate">загрузка...</span></span>
+        <span class="ticker-item">BTC <span id="btcRate">загрузка...</span></span>
+        <span class="ticker-item">Brent <span id="brentRate">загрузка...</span></span>
+    </div>
+</div>
+        
+        <div class="breaking-news">
+            <div class="breaking-content" id="breakingNews"></div>
+        </div>
+        
+        <div class="container">
+            <a href="javascript:history.back()" class="back-button">← Вернуться к новостям</a>
+            
+            <div id="loadingIndicator" class="loading">
+                <div class="loading-spinner"></div>
+                <div>Загрузка статьи...</div>
+            </div>
+            
+            <div class="article" id="article" style="display: none;"></div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 ТОЛК. Все права защищены.</p>
+            <p>новости со смыслом</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    
+        
+        const app = initializeApp(firebaseConfig);
+        const firebaseConfig = FIREBASE_CONFIG;
+
+        // Переключение темы
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme');
+        
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        const CATEGORY_EMOJI = {
+            'Политика': '🏛️', 'Экономика': '📊', 'Технологии': '💻',
+            'Авто': '🚗', 'Киберспорт': '🎮', 'Культура': '🎭', 'Спорт': '⚽',
+            'default': '📰'
+        };
+
+        function getCategoryEmoji(category) {
+            return CATEGORY_EMOJI[category] || CATEGORY_EMOJI['default'];
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleString('ru-RU', {
+                    hour: '2-digit', minute: '2-digit',
+                    day: '2-digit', month: '2-digit', year: 'numeric'
+                });
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function getArticleImage(article) {
+            if (article.images && article.images.length > 0) {
+                return article.images[0];
+            }
+            return 'placeholder';
+        }
+
+        async function updateCurrencyRates() {
+            try {
+                const cbrResponse = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
+                const cbrData = await cbrResponse.json();
+                
+                document.getElementById('usdRate').textContent = cbrData.Valute.USD.Value.toFixed(2) + ' ₽';
+                document.getElementById('eurRate').textContent = cbrData.Valute.EUR.Value.toFixed(2) + ' ₽';
+                document.getElementById('cnyRate').textContent = cbrData.Valute.CNY.Value.toFixed(2) + ' ₽';
+                
+                try {
+                    const btcResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                    const btcData = await btcResponse.json();
+                    if (btcData.bitcoin) {
+                        document.getElementById('btcRate').textContent = '$' + btcData.bitcoin.usd.toLocaleString();
+                    } else {
+                        document.getElementById('btcRate').textContent = '$65,420';
+                    }
+                } catch (btcError) {
+                    document.getElementById('btcRate').textContent = '$65,420';
+                }
+                
+                document.getElementById('brentRate').textContent = '$84.15';
+                
+            } catch (error) {
+                document.getElementById('usdRate').textContent = '85.50 ₽';
+                document.getElementById('eurRate').textContent = '92.30 ₽';
+                document.getElementById('cnyRate').textContent = '11.75 ₽';
+                document.getElementById('btcRate').textContent = '$65,420';
+                document.getElementById('brentRate').textContent = '$84.15';
+            }
+        }
+
+        async function updateWeather() {
+            const apiKey = 'bd5e378503939ddaee76f12ad7a97608';
+            const weatherMsk = document.getElementById('weatherMsk');
+            const weatherSpb = document.getElementById('weatherSpb');
+            
+            try {
+                const mskResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Moscow,ru&appid=${apiKey}&units=metric&lang=ru`);
+                const mskData = await mskResponse.json();
+                if (mskData.main) {
+                    const temp = Math.round(mskData.main.temp);
+                    const desc = mskData.weather[0].description;
+                    weatherMsk.innerHTML = `🌡️ Москва: ${temp}°C, ${desc}`;
+                }
+                
+                const spbResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Saint Petersburg,ru&appid=${apiKey}&units=metric&lang=ru`);
+                const spbData = await spbResponse.json();
+                if (spbData.main) {
+                    const temp = Math.round(spbData.main.temp);
+                    const desc = spbData.weather[0].description;
+                    weatherSpb.innerHTML = `🌡️ СПб: ${temp}°C, ${desc}`;
+                }
+            } catch (error) {
+                console.error('Ошибка погоды:', error);
+            }
+        }
+
+        async function loadAllNews() {
+            try {
+                const response = await fetch('/news_data.json');
+                return await response.json();
+            } catch (error) {
+                console.error('Ошибка загрузки новостей:', error);
+                return [];
+            }
+        }
+
+        async function loadArticle() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const articleElement = document.getElementById('article');
+            const params = new URLSearchParams(window.location.search);
+            const articleId = params.get('id');
+            
+            if (!articleId) {
+                loadingIndicator.style.display = 'none';
+                articleElement.style.display = 'block';
+                articleElement.innerHTML = '<div class="error">ID статьи не указан</div>';
+                return;
+            }
+
+            try {
+                loadingIndicator.style.display = 'block';
+                articleElement.style.display = 'none';
+                
+                const allNews = await loadAllNews();
+                const article = allNews.find(item => item.id === articleId);
+                
+                if (!article) {
+                    throw new Error('Статья не найдена');
+                }
+                
+                const category = article.category || 'default';
+                
+                const related = allNews
+                    .filter(item => item.category === category && item.id !== articleId)
+                    .slice(0, 3);
+                
+                const now = new Date();
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('ru-RU', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+                
+                await updateWeather();
+                await updateCurrencyRates();
+                
+                document.getElementById('navLinks').innerHTML = `
+                    <a href="/" class="nav-link">Главная</a>
+                    <a href="/?cat=${category}" class="nav-link active">${getCategoryEmoji(category)} ${category}</a>
+                `;
+                
+                document.getElementById('breakingNews').innerHTML = '<span>⚡ Читайте главные новости на ТОЛК</span>'.repeat(10);
+                
+                let relatedHtml = '';
+                if (related.length > 0) {
+                    relatedHtml = '<h3 style="margin-bottom: 1rem;">Читайте также:</h3><div class="related-grid">';
+                    related.slice(0, 3).forEach(rel => {
+                        relatedHtml += `<a href="/article.html?id=${rel.id}" class="related-item">${rel.title.substring(0, 40)}...</a>`;
+                    });
+                    relatedHtml += '</div>';
+                }
+                
+                const articleImage = getArticleImage(article);
+                const articleContent = article.content || '<p>Текст статьи загружается...</p>';
+                
+                let articleHtml = '';
+                
+                if (articleImage === 'placeholder') {
+                    articleHtml = `
+                        <div class="placeholder-image">
+                            <div class="placeholder-logo">ТОЛК</div>
+                            <div class="placeholder-category">${category}</div>
+                            <div class="placeholder-message"></div>
+                        </div>
+                        <div class="article-content">
+                            <div class="article-category">${category}</div>
+                            <h1>${article.title || 'Без названия'}</h1>
+                            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
+                            <div class="article-text">
+                                ${articleContent}
+                            </div>
+                            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                ${relatedHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    articleHtml = `
+                        <img src="${articleImage}" alt="${category}" 
+                             onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${category}</div></div>');">
+                        <div class="article-content">
+                            <div class="article-category">${category}</div>
+                            <h1>${article.title || 'Без названия'}</h1>
+                            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
+                            <div class="article-text">
+                                ${articleContent}
+                            </div>
+                            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                ${relatedHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                articleElement.innerHTML = articleHtml;
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                articleElement.innerHTML = `<div class="error">❌ Ошибка загрузки: ${error.message}</div>`;
+            } finally {
+                loadingIndicator.style.display = 'none';
+                articleElement.style.display = 'block';
+            }
+        }
+
+        window.onload = loadArticle;
+    </script>
+</body>
+</html>
