@@ -25,7 +25,7 @@
         ]
       },
       {
-         "source": "/news_data_v2.json",
+         "source": "/news_data.json",
   "headers": [
           {
             "key": "Cache-Control",

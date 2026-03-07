@@ -637,7 +637,7 @@
 
         async function loadAllNews() {
             try {
-                const response = await fetch('/news_data_v2.json');
+                const response = await fetch('/news_data.json');
                 return await response.json();
             } catch (error) {
                 console.error('Ошибка загрузки новостей:', error);

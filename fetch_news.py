@@ -212,7 +212,7 @@ def ai_rewrite_text(text):
 def fetch_and_save():
     print(f"\n[{datetime.now()}] 🔴 НАЧАЛО СБОРА НОВОСТЕЙ")
     
-    json_path = 'public/news_data_v2.json'
+    json_path = 'public/news_data.json'
     
     existing_links = set()
     if os.path.exists(json_path):
