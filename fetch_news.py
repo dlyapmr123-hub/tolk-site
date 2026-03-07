@@ -1,27 +1,142 @@
-# fetch_news.py - ТЕСТ
-print("1. Скрипт начал работу")
+# fetch_news.py - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
+print("🚀 Запуск скрипта...")
 
 import feedparser
-print("2. feedparser загружен")
-
 import json
-print("3. json загружен")
-
 import time
-print("4. time загружен")
-
 from datetime import datetime
-print("5. datetime загружен")
-
 import hashlib
-print("6. hashlib загружен")
-
+import random
 import requests
-print("7. requests загружен")
-
+from urllib.parse import urlparse
+import re
 import os
-print("8. os загружен")
 
-print("✅ ВСЕ БИБЛИОТЕКИ ЗАГРУЖЕНЫ")
+print("✅ Базовые библиотеки загружены")
 
-# Дальше можно добавить остальной код
+# Firebase загружаем с защитой
+try:
+    import firebase_admin
+    from firebase_admin import credentials, firestore
+    print("✅ Firebase загружен")
+    
+    # Пробуем инициализировать
+    if os.path.exists("serviceAccountKey.json"):
+        cred = credentials.Certificate("serviceAccountKey.json")
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        print("✅ Firebase инициализирован")
+        FIREBASE_OK = True
+    else:
+        print("⚠️ serviceAccountKey.json не найден")
+        FIREBASE_OK = False
+except Exception as e:
+    print(f"⚠️ Ошибка Firebase: {e}")
+    FIREBASE_OK = False
+
+# ============ НАСТРОЙКИ ============
+TIMEOUT = 5
+MAX_ARTICLES_PER_FEED = 2
+REQUEST_DELAY = 1
+
+# ============ RSS ИСТОЧНИКИ ============
+RSS_FEEDS = {
+    'Политика': ['https://lenta.ru/rss/news/politics', 'https://ria.ru/export/rss2/politics/index.xml'],
+    'Экономика': ['https://lenta.ru/rss/news/economics', 'https://ria.ru/export/rss2/economy/index.xml'],
+    'Спорт': ['https://lenta.ru/rss/news/sport', 'https://ria.ru/export/rss2/sport/index.xml']
+}
+
+def extract_images_from_entry(entry):
+    """Извлечение картинок"""
+    images = []
+    if hasattr(entry, 'media_content'):
+        for media in entry.media_content:
+            if media.get('url'):
+                images.append(media['url'])
+    return list(dict.fromkeys(images))
+
+def fetch_and_save():
+    """Основная функция"""
+    print(f"\n{'='*60}")
+    print(f"  🔴 НАЧАЛО СБОРА НОВОСТЕЙ [{datetime.now()}]")
+    print(f"{'='*60}")
+    
+    json_path = 'public/news_data.json'
+    
+    # Загружаем существующие новости
+    existing_links = set()
+    old_news = []
+    
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                old_news = json.load(f)
+                for item in old_news:
+                    if item.get('originalLink'):
+                        existing_links.add(item['originalLink'])
+            print(f"📚 Загружено {len(old_news)} старых новостей")
+        except Exception as e:
+            print(f"⚠️ Ошибка загрузки JSON: {e}")
+            old_news = []
+    
+    all_news = old_news.copy()
+    new_count = 0
+    
+    for category, feeds in RSS_FEEDS.items():
+        print(f"\n📡 Категория: {category}")
+        
+        for feed_url in feeds:
+            print(f"  🔍 {feed_url.split('/')[2]}")
+            try:
+                feed = feedparser.parse(feed_url)
+                
+                for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
+                    if entry.link in existing_links:
+                        continue
+                    
+                    print(f"    ✅ {entry.title[:60]}...")
+                    
+                    # Картинки
+                    images = extract_images_from_entry(entry)
+                    
+                    # Описание
+                    description = entry.get('summary', '')[:200]
+                    
+                    # Создаём запись
+                    news_item = {
+                        'id': hashlib.md5(entry.link.encode()).hexdigest()[:16],
+                        'title': entry.title[:200],
+                        'description': description,
+                        'content': f'<p>{description}</p>',
+                        'category': category,
+                        'images': images[:2],
+                        'originalLink': entry.link,
+                        'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    
+                    all_news.append(news_item)
+                    existing_links.add(entry.link)
+                    new_count += 1
+                    
+                    time.sleep(REQUEST_DELAY)
+                    
+            except Exception as e:
+                print(f"    ⚠️ Ошибка: {feed_url}")
+                continue
+    
+    # Сохраняем JSON
+    all_news.sort(key=lambda x: x['timestamp'], reverse=True)
+    all_news = all_news[:200]
+    
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(all_news, f, ensure_ascii=False, indent=2)
+    
+    print(f"\n{'='*60}")
+    print(f"✅ ИТОГИ:")
+    print(f"   📊 Всего: {len(all_news)}")
+    print(f"   🆕 Добавлено: {new_count}")
+    print(f"{'='*60}")
+
+if __name__ == '__main__':
+    fetch_and_save()
