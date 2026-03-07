@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "tolk-1"
-  }
+  },
+  "targets": {
+    "tolk-1": {
+      "hosting": {
+        "main": [
+          "tolk-1"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
