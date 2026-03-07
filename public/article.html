@@ -464,21 +464,6 @@
             .related-grid {
                 grid-template-columns: 1fr;
             }
-           .top-bar {
-    background: var(--card-bg);
-    color: var(--secondary-text);
-}
-            .weather {
-                justify-content: center;
-            }
-            
-            .theme-toggle {
-                bottom: 10px;
-                right: 10px;
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
         }
     </style>
 </head>
@@ -541,9 +526,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     
-        
-        const app = initializeApp(firebaseConfig);
         const firebaseConfig = FIREBASE_CONFIG;
+        const app = initializeApp(firebaseConfig);
+        
 
         // Переключение темы
         const themeToggle = document.getElementById('themeToggle');

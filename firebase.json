@@ -16,7 +16,7 @@
           },
           {
             "key": "Pragma",
-            "key": "no-cache"
+            "value": "no-cache"
           },
           {
             "key": "Expires",

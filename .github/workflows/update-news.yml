@@ -41,3 +41,12 @@ jobs:
           git add public/news_data.json
           git diff --quiet && git diff --staged --quiet || git commit -m "Автообновление новостей [$(date)]"
           git push
+      
+      # --- НОВЫЙ ШАГ: Деплой на Firebase ---
+      - name: Деплой на Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: tolk-1
+          channelId: live
