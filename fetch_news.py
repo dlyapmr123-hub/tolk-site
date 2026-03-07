@@ -12,7 +12,6 @@ import re
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore
-import signal
 
 # ============ НАСТРОЙКИ ============
 TIMEOUT = 5  # Таймаут для запросов в секундах
@@ -385,11 +384,4 @@ def fetch_and_save():
 
 # ============ ЗАПУСК ============
 if __name__ == '__main__':
-    # Устанавливаем общий таймаут (не будет работать в Windows, но оставим для Linux/GitHub)
-    try:
-        signal.signal(signal.SIGALRM, lambda x,y: (_ for _ in ()).throw(Exception("Скрипт выполнялся слишком долго")))
-        signal.alarm(300)  # 5 минут максимум
-    except:
-        pass  # Пропускаем если сигналы не поддерживаются
-    
     fetch_and_save()
