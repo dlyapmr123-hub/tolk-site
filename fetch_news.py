@@ -27,7 +27,6 @@ def fetch_and_save():
     
     json_path = 'public/news_data.json'
     
-    # Загружаем существующие новости
     existing_links = set()
     if os.path.exists(json_path):
         with open(json_path, 'r', encoding='utf-8') as f:
@@ -53,14 +52,12 @@ def fetch_and_save():
                     
                     print(f"  + {entry.title[:50]}...")
                     
-                    # Картинки
                     images = []
                     if hasattr(entry, 'media_content'):
                         for media in entry.media_content:
                             if media.get('url'):
                                 images.append(media['url'])
                     
-                    # Описание
                     description = entry.get('summary', '')[:200]
                     
                     news_item = {
@@ -83,7 +80,6 @@ def fetch_and_save():
                 print(f"  Ошибка: {feed_url}")
                 continue
     
-    # Сохраняем
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(all_news[:200], f, ensure_ascii=False, indent=2)
     
