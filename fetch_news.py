@@ -79,24 +79,29 @@ RSS_FEEDS = {
 }
 
 class TextCleaner:
-    """ОЧИСТКА ТЕКСТА ОТ МУСОРА"""
+    """МИНИМАЛЬНАЯ ОЧИСТКА - ОСТАЛЬНОЕ СДЕЛАЕТ ИИ"""
     
     @staticmethod
-    def remove_url_garbage(text: str) -> str:
-        """Удаляет мусор типа 'com' и 'ру' из текста"""
-        # Удаляем отдельно стоящие com, ru, ру и т.д.
-        text = re.sub(r'\s+com\s+', ' ', text)
-        text = re.sub(r'\s+ru\s+', ' ', text)
-        text = re.sub(r'\s+ру\s+', ' ', text)
-        text = re.sub(r'\s+рф\s+', ' ', text)
-        text = re.sub(r'\s+net\s+', ' ', text)
-        text = re.sub(r'\s+org\s+', ' ', text)
+    def clean_article_text(text: str) -> str:
+        """Только базовая очистка"""
+        if not text:
+            return ""
         
-        # Удаляем точки после слов (оставляем только в конце предложений)
-        text = re.sub(r'(\w)\.(\w)', r'\1 \2', text)  # Разделяем слова с точкой внутри
-        text = re.sub(r'\.(\s+[а-я])', r'. \1', text)  # Исправляем точки без пробелов
+        # 1. Удаляем HTML теги
+        text = re.sub(r'<[^>]+>', ' ', text)
         
-        return text
+        # 2. Декодируем HTML сущности
+        text = html.unescape(text)
+        
+        # 3. Убираем только явный мусор
+        text = re.sub(r'Читайте также:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
+        text = re.sub(r'Фото:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
+        text = re.sub(r'Видео:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
+        
+        # 4. Убираем множественные пробелы (но не единичные!)
+        text = re.sub(r' {2,}', ' ', text)
+        
+        return text.strip()
     
     @staticmethod
     def fix_spaces(text: str) -> str:
@@ -310,42 +315,43 @@ class NewsCollector:
             return None, []
     
     def ai_rewrite(self, text: str, title: str) -> str:
-        """ИИ переписывание"""
-        if not CONFIG['USE_AI'] or len(text) < 200:
-            return text
+    """ИИ переписывание - исправит все проблемы"""
+    if not CONFIG['USE_AI'] or len(text) < 200:
+        return text
+    
+    try:
+        self.log("ИИ обрабатывает...", "AI")
         
-        try:
-            self.log("ИИ обрабатывает...", "AI")
-            
-            prompt = f"""Перепиши эту новость своими словами. 
-Сохрани все факты, но убери упоминания других сайтов (РИА, ТАСС, Лента и т.д.).
-Напиши чистый, грамотный текст из 4-5 предложений.
-Исправь все склеенные слова и убери лишние точки.
+        prompt = f"""Перепиши эту новость красивым русским языком.
+Исправь все проблемы с пробелами, сделай текст грамотным.
+Сохрани все факты, напиши связно (4-5 предложений).
+Убирай различные упоминания о других сайтах с новостями, переписывай весь текст своми словами но сохраняй суть.
 
 Заголовок: {title}
 Текст: {text[:1500]}
 
-Переписанный текст:"""
-            
-            headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
-            data = {
-                "model": CONFIG['AI_MODEL'],
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
-                "max_tokens": 600
-            }
-            
-            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
-            
-            if response.status_code == 200:
-                result = response.json()
-                rewritten = result["choices"][0]["message"]["content"]
-                rewritten = TextCleaner.clean_article_text(rewritten)
-                return rewritten
-        except:
-            pass
+Переписанный текст:"""
         
-        return text
+        headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
+        data = {
+            "model": CONFIG['AI_MODEL'],
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": 600
+        }
+        
+        response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
+        
+        if response.status_code == 200:
+            result = response.json()
+            rewritten = result["choices"][0]["message"]["content"]
+            # Только базовая чистка
+            rewritten = re.sub(r'\s+', ' ', rewritten).strip()
+            return rewritten
+    except:
+        pass
+    
+    return text
     
     def run(self):
         print("\n" + "="*70)
