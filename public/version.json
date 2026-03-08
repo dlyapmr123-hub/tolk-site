@@ -1,10 +1,10 @@
 {
-  "version": 1772984382.733448,
-  "updated": "2026-03-08T15:39:42.733452",
+  "version": 1772984675.224865,
+  "updated": "2026-03-08T15:44:35.224871",
   "total": 26,
   "new": 0,
-  "processed": 50,
-  "skipped_no_images": 50,
+  "processed": 150,
+  "skipped_no_images": 150,
   "skipped_already_exists": 0,
   "with_images": 8
 }
