@@ -113,42 +113,52 @@ class NewsCollector:
         print(f"{emoji} [{timestamp}] {message}")
     
     def get_gigachat_token(self) -> Optional[str]:
-        """Получение токена доступа к GigaChat"""
-        try:
-            if self.access_token and time.time() < self.token_expires:
-                return self.access_token
+    """Получение токена доступа к GigaChat"""
+    try:
+        # Если токен еще действителен, возвращаем его
+        if self.access_token and time.time() < self.token_expires:
+            return self.access_token
+        
+        self.log("Получение токена GigaChat...", "AI")
+        
+        headers = {
+            'Authorization': f'Basic {CONFIG["AI_CLIENT_SECRET"]}',
+            'RqUID': str(uuid.uuid4()),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        data = {'scope': 'GIGACHAT_API_PERS'}  # Для физических лиц
+        
+        response = requests.post(
+            CONFIG['AI_AUTH_URL'],
+            headers=headers,
+            data=data,
+            timeout=10,
+            verify=CONFIG['AI_VERIFY_SSL']
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            self.access_token = result['access_token']
             
-            self.log("Получение токена GigaChat...", "AI")
-            
-            headers = {
-                'Authorization': f'Basic {CONFIG["AI_CLIENT_SECRET"]}',
-                'RqUID': str(uuid.uuid4()),
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-            
-            data = {'scope': 'GIGACHAT_API_PERS'}
-            
-            response = requests.post(
-                CONFIG['AI_AUTH_URL'],
-                headers=headers,
-                data=data,
-                timeout=10,
-                verify=CONFIG['AI_VERIFY_SSL']
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                self.access_token = result['access_token']
+            # Проверяем наличие expires_in, если нет - ставим 30 минут по умолчанию
+            if 'expires_in' in result:
                 self.token_expires = time.time() + result['expires_in'] - 60
-                self.log("✅ Токен получен", "AI")
-                return self.access_token
             else:
-                self.log(f"❌ Ошибка получения токена: {response.status_code}", "ERROR")
-                return None
-                
-        except Exception as e:
-            self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
+                # Токен GigaChat обычно живет 30 минут
+                self.token_expires = time.time() + 1800 - 60  # 30 минут - 1 минута запас
+                self.log("⚠️ expires_in не найден, использую значение по умолчанию (30 мин)", "WARNING")
+            
+            self.log(f"✅ Токен получен, действует до {datetime.fromtimestamp(self.token_expires).strftime('%H:%M:%S')}", "AI")
+            return self.access_token
+        else:
+            self.log(f"❌ Ошибка получения токена: {response.status_code}", "ERROR")
+            self.log(f"Ответ: {response.text[:200]}", "ERROR")
             return None
+            
+    except Exception as e:
+        self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
+        return None
     
     def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
         """Загрузка страницы и извлечение текста"""
