@@ -5,33 +5,38 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
+# Добавляем права доступа
 permissions:
-  contents: write
+  contents: read
+  pull-requests: write
 
 jobs:
   update-news:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      # Явно устанавливаем Node.js (важно для Firebase Action)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
-      
+          node-version: '20'
+
       - name: Установка Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Установка зависимостей
+
+      - name: Установка зависимостей Python
         run: |
-          python -m pip install --upgrade pip
           pip install feedparser requests beautifulsoup4 lxml
-      
+
       - name: Создание serviceAccountKey.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
-      
+
       - name: Создание config.js
         run: |
           echo "const FIREBASE_CONFIG = {" > public/config.js
@@ -42,20 +47,20 @@ jobs:
           echo "  messagingSenderId: \"79835817899\"," >> public/config.js
           echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
           echo "};" >> public/config.js
-      
+
       - name: Запуск импортера
         run: python fetch_news.py
-      
+
       - name: Настройка Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Проверка изменений
         id: check_changes
         run: |
-          git add public/news_data_v3.json public/version.json
-          
+          git add public/news_data_v3.json public/version.json || true
+
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "Нет новых новостей"
@@ -63,21 +68,14 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Есть новые новости"
           fi
-      
+
       - name: Коммит и пуш изменений
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          # Сохраняем изменения
           git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
-          
-          # Пробуем запушить, если не получается - делаем pull и push
-          if ! git push origin main; then
-            echo "⚠️ Не удалось запушить, делаем pull..."
-            git pull --rebase origin main
-            git push origin main
-          fi
-          echo "✅ Изменения отправлены"
-      
+          git pull --rebase origin main || true
+          git push origin main
+
       - name: Деплой на Firebase Hosting
         if: steps.check_changes.outputs.changed == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
