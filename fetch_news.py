@@ -37,36 +37,36 @@ except ImportError:
     print("✅ BeautifulSoup установлен и импортирован")
 
 # ============ НАСТРОЙКИ ============
-TIMEOUT = 10  # Уменьшаем таймаут для быстрой загрузки
-MAX_ARTICLES_PER_FEED = 3  # Количество статей из каждого источника
-REQUEST_DELAY = 1  # Задержка между запросами
-MAX_IMAGES = 3  # Максимум картинок на новость
+TIMEOUT = 10
+MAX_ARTICLES_PER_FEED = 3
+REQUEST_DELAY = 1
+MAX_IMAGES = 3
 
 # ============ RSS ИСТОЧНИКИ (ТОЛЬКО БЫСТРЫЕ) ============
-# ============ RSS ИСТОЧНИКИ (СУПЕР БЫСТРЫЕ) ============
-# ============ RSS ИСТОЧНИКИ (ТОЛЬКО РАБОЧИЕ) ============
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',         # RIA.ru - работает
+        'https://ria.ru/export/rss2/politics/index.xml',
     ],
     'Экономика': [
-        'https://ria.ru/export/rss2/economy/index.xml',          # RIA.ru
+        'https://ria.ru/export/rss2/economy/index.xml',
+        'https://www.rbc.ru/rss/',
     ],
     'Технологии': [
-        'https://habr.com/ru/rss/news/?fl=ru',                    # Habr.com - быстро
+        'https://ria.ru/export/rss2/technology/index.xml',
+        'https://habr.com/ru/rss/news/?fl=ru',
     ],
     'Авто': [
-        'https://ria.ru/export/rss2/auto/index.xml',             # RIA.ru авто
+        'https://ria.ru/export/rss2/auto/index.xml',
     ],
     'Киберспорт': [
-        'https://www.cybersport.ru/rss',                          # Cybersport.ru
+        'https://www.cybersport.ru/rss',
     ],
     'Культура': [
-        'https://ria.ru/export/rss2/culture/index.xml',          # RIA.ru
+        'https://ria.ru/export/rss2/culture/index.xml',
     ],
     'Спорт': [
-        'https://ria.ru/export/rss2/sport/index.xml',            # RIA.ru
-        'https://www.championat.com/news/rss/',                   # Championat.com
+        'https://ria.ru/export/rss2/sport/index.xml',
+        'https://www.championat.com/news/rss/',
     ]
 }
 
@@ -74,7 +74,6 @@ RSS_FEEDS = {
 USE_AI = True
 AI_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 AI_MODEL = "gpt-3.5-turbo"
-# ВАШ НОВЫЙ КЛЮЧ
 AI_API_KEY = "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"
 
 if not AI_API_KEY or AI_API_KEY == "sk-or-v1-...":
@@ -121,38 +120,36 @@ def clean_text(text):
     return text.strip()
 
 def extract_text_fast(html_content):
-    """Быстрое извлечение текста без сложного парсинга"""
+    """Быстрое извлечение текста и картинок"""
     if not html_content:
         return None, []
     
     images = []
     
     try:
-        # Быстро ищем картинки через регулярные выражения
+        # Ищем картинки
         img_matches = re.findall(r'<img[^>]+src="([^">]+)"', html_content)
-        for url in img_matches[:MAX_IMAGES]:
+        for url in img_matches[:MAX_IMAGES * 2]:  # Ищем больше для фильтрации
             if url.startswith('//'):
                 url = 'https:' + url
             elif url.startswith('/'):
                 # Относительный путь пропускаем
                 continue
             
-            # Проверяем, что это похоже на картинку
+            # Проверяем, что это реальная картинка, а не иконка
             if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', url.lower()):
-                if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad)', url.lower()):
+                if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad|reklama)', url.lower()):
                     images.append(url)
         
         # Ищем текст в параграфах
         p_matches = re.findall(r'<p[^>]*>(.*?)</p>', html_content, re.DOTALL)
         text_parts = []
         
-        for p in p_matches[:8]:  # Первые 8 параграфов
-            # Удаляем теги внутри параграфа
+        for p in p_matches[:8]:
             p_text = re.sub(r'<[^>]+>', ' ', p)
             p_text = html.unescape(p_text)
             p_text = re.sub(r'\s+', ' ', p_text).strip()
             
-            # Проверяем, что это не мусор
             if len(p_text) > 40 and not re.search(r'(реклама|подпишись|vk|telegram)', p_text.lower()):
                 text_parts.append(p_text)
         
@@ -177,7 +174,7 @@ def extract_text_fast(html_content):
         return None, images[:MAX_IMAGES]
 
 def fetch_article_data(url):
-    """Быстрая загрузка статьи с сайта"""
+    """Загрузка статьи и картинок"""
     try:
         print(f"    📥 Загрузка: {url[:50]}...")
         
@@ -189,47 +186,34 @@ def fetch_article_data(url):
             'DNT': '1',
         }
         
-        # Устанавливаем маленький таймаут для быстрой загрузки
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
         
         if response.status_code != 200:
-            print(f"    ⚠️ Ошибка HTTP: {response.status_code}")
             return None, []
         
-        # Проверяем длину ответа
         if len(response.text) < 2000:
-            print(f"    ⚠️ Ответ слишком маленький ({len(response.text)} байт)")
             return None, []
         
-        # Извлекаем текст и картинки
         text, images = extract_text_fast(response.text)
         
         if text and len(text) > 200:
-            print(f"    ✅ Загружено: {len(text)} символов, {len(images)} картинок")
             return text, images
         else:
-            print(f"    ⚠️ Текст слишком короткий")
             return None, images
         
     except requests.exceptions.Timeout:
-        print(f"    ⏱️ Таймаут (превышено время ожидания)")
-        return None, []
-    except requests.exceptions.ConnectionError:
-        print(f"    🔌 Ошибка соединения")
         return None, []
     except Exception as e:
-        print(f"    ⚠️ Ошибка загрузки")
         return None, []
 
 def ai_rewrite_text(text, title, category):
-    """Быстрое перефразирование текста через ИИ"""
+    """Перефразирование текста через ИИ"""
     if not text or len(text) < 200 or not USE_AI:
         return text
     
     try:
         print(f"    🤖 ИИ обрабатывает текст...")
         
-        # Берем только начало текста для ускорения
         short_text = text[:800]
         
         prompt = f"""Перепиши эту новость своими словами, сохранив смысл.
@@ -264,13 +248,11 @@ def ai_rewrite_text(text, title, category):
             rewritten = clean_text(rewritten)
             
             if len(rewritten) > 100:
-                print(f"    ✅ ИИ обработал, {len(rewritten)} символов")
                 return rewritten
         
         return text
         
     except Exception as e:
-        print(f"    ⚠️ Ошибка ИИ")
         return text
 
 def fetch_and_save():
@@ -278,7 +260,7 @@ def fetch_and_save():
     print(f"  НАЧАЛО СБОРА НОВОСТЕЙ [{datetime.now().strftime('%H:%M:%S')}]")
     print(f"{'='*60}")
     
-    # Создаем папку public если её нет
+    # Создаем папку public
     if not os.path.exists('public'):
         os.makedirs('public')
     
@@ -298,13 +280,12 @@ def fetch_and_save():
                         existing_links.add(item['originalLink'])
             print(f"📊 Загружено {len(old_news)} старых новостей")
         except Exception as e:
-            print(f"⚠️ Ошибка загрузки старого JSON: {e}")
             old_news = []
     
     all_news = old_news.copy()
     new_count = 0
     total_processed = 0
-    failed = 0
+    skipped_no_images = 0
     
     for category, feeds in RSS_FEEDS.items():
         print(f"\n📡 {category} ({len(feeds)} источников)")
@@ -318,8 +299,6 @@ def fetch_and_save():
                     print(f"  ⚠️ Нет записей")
                     continue
                 
-                print(f"  📊 Найдено записей: {len(feed.entries)}")
-                
                 for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
                     total_processed += 1
                     
@@ -328,23 +307,26 @@ def fetch_and_save():
                     
                     print(f"\n  🔍 {entry.title[:60]}...")
                     
-                    # Пробуем загрузить текст с сайта
+                    # Загружаем текст и картинки
                     full_text, images = fetch_article_data(entry.link)
                     
-                    # Если не загрузилось, используем описание из RSS
+                    # ПРОВЕРКА: если нет картинок - пропускаем
+                    if not images or len(images) == 0:
+                        print(f"    ⚠️ ПРОПУЩЕНО: нет картинок")
+                        skipped_no_images += 1
+                        continue
+                    
                     if not full_text:
                         full_text = entry.get('summary', '') or entry.get('description', '')
                         full_text = re.sub(r'<[^>]+>', '', full_text)
                         full_text = clean_text(full_text)
-                        print(f"    📝 Используем описание из RSS")
                     
-                    # Применяем ИИ к тексту
+                    # Применяем ИИ
                     if USE_AI and full_text:
                         full_text = ai_rewrite_text(full_text, entry.title, category)
                     
-                    # Форматируем текст в HTML
+                    # Форматируем текст
                     if full_text:
-                        # Разбиваем на предложения для красивого форматирования
                         sentences = re.split(r'[.!?]+', full_text)
                         content_html = ''
                         for i, sent in enumerate(sentences[:5]):
@@ -354,7 +336,6 @@ def fetch_and_save():
                     else:
                         content_html = f'<p>{entry.title}</p>'
                     
-                    # Получаем описание для превью
                     description = full_text[:150] + '...' if full_text and len(full_text) > 150 else (full_text or entry.title)
                     
                     # Создаем запись
@@ -376,52 +357,44 @@ def fetch_and_save():
                     
                     print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)}")
                     
-                    # Маленькая задержка между запросами
                     time.sleep(REQUEST_DELAY)
                     
             except Exception as e:
                 print(f"  ❌ Ошибка: {e}")
-                failed += 1
                 continue
     
-    # Сортируем по дате (новые сверху)
+    # Сортируем и сохраняем
     all_news.sort(key=lambda x: x['timestamp'], reverse=True)
     
-    # Оставляем только последние 200 новостей
     if len(all_news) > 200:
         all_news = all_news[:200]
     
-    # Сохраняем JSON с новостями
-    try:
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(all_news, f, ensure_ascii=False, indent=2)
-        print(f"\n✅ JSON сохранен: {json_path}")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения JSON: {e}")
+    # Сохраняем JSON
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(all_news, f, ensure_ascii=False, indent=2)
+    print(f"\n✅ JSON сохранен: {json_path}")
     
-    # Сохраняем версию для сброса кэша
+    # Сохраняем версию
     version_data = {
         'version': datetime.now().timestamp(),
         'updated': datetime.now().isoformat(),
         'total': len(all_news),
         'new': new_count,
         'processed': total_processed,
-        'failed': failed
+        'skipped_no_images': skipped_no_images,
+        'with_images': sum(1 for item in all_news if item.get('images'))
     }
     
-    try:
-        with open(version_path, 'w', encoding='utf-8') as f:
-            json.dump(version_data, f, ensure_ascii=False, indent=2)
-        print(f"✅ Version сохранен: {version_path}")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения version: {e}")
+    with open(version_path, 'w', encoding='utf-8') as f:
+        json.dump(version_data, f, ensure_ascii=False, indent=2)
+    print(f"✅ Version сохранен: {version_path}")
     
     print(f"\n{'='*60}")
     print(f"✅ ИТОГИ РАБОТЫ:")
     print(f"   Всего новостей: {len(all_news)}")
     print(f"   Новых добавлено: {new_count}")
     print(f"   Всего обработано: {total_processed}")
-    print(f"   Не удалось загрузить: {failed}")
+    print(f"   Пропущено (нет картинок): {skipped_no_images}")
     print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
     print(f"{'='*60}\n")
 
