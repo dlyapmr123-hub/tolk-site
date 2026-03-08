@@ -89,7 +89,7 @@ USE_AI = True
 AI_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 AI_MODEL = "gpt-3.5-turbo"
 # ВАЖНО: ВСТАВЬТЕ ВАШ КЛЮЧ! Получите на https://openrouter.ai/keys
-AI_API_KEY = "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"  # Ваш ключ
+AI_API_KEY = "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"  # Ваш ключ
 
 if AI_API_KEY == "sk-or-v1-..." or not AI_API_KEY:
     print("⚠️ ВНИМАНИЕ: API ключ не настроен! ИИ будет отключен")
