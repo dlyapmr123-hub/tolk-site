@@ -180,18 +180,15 @@ class NewsCollector:
         # 2. Ищем в статье
         article = soup.find('article')
         if article:
-            # Ищем все изображения внутри статьи
             for img in article.find_all('img'):
                 src = img.get('src') or img.get('data-src')
                 if not src:
                     continue
                 
-                # Проверяем классы - пропускаем аватарки
                 img_class = ' '.join(img.get('class', []))
                 if re.search(r'avatar|user-picture|userpic|author', img_class, re.I):
                     continue
                 
-                # Проверяем URL - пропускаем иконки и маленькие картинки
                 if re.search(r'avatar|icon|logo|favicon|pixel|spacer', src.lower()):
                     continue
                 
@@ -202,30 +199,12 @@ class NewsCollector:
                 if len(habr_images) >= CONFIG['MAX_IMAGES']:
                     break
         
-        # 3. Если ничего не нашли, ищем в любых изображениях страницы
-        if not habr_images:
-            all_images = soup.find_all('img')
-            for img in all_images:
-                src = img.get('src') or img.get('data-src')
-                if not src:
-                    continue
-                
-                # Берем только большие картинки (по расширению)
-                if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
-                    if not re.search(r'avatar|icon|logo|favicon', src.lower()):
-                        if src.startswith('//'):
-                            src = 'https:' + src
-                        habr_images.append(src)
-                        if len(habr_images) >= CONFIG['MAX_IMAGES']:
-                            break
-        
         return habr_images[:CONFIG['MAX_IMAGES']]
     
     def extract_lenta_images(self, soup) -> List[str]:
         """Специальный парсер картинок для Ленты"""
         images = []
         
-        # 1. Основные картинки статей
         lenta_images = soup.find_all('img', class_='picture__image')
         for img in lenta_images:
             src = img.get('src')
@@ -235,7 +214,6 @@ class NewsCollector:
                 images.append(src)
                 self.log("Найдена картинка Lenta (picture__image)", "IMAGE")
         
-        # 2. Если не нашли, ищем в article
         if not images:
             article = soup.find('article')
             if article:
@@ -252,7 +230,6 @@ class NewsCollector:
         """Специальный парсер картинок для РИА"""
         images = []
         
-        # 1. Ищем в photoview
         ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
         for img in ria_images:
             src = img.get('src')
@@ -261,7 +238,6 @@ class NewsCollector:
                     src = 'https:' + src
                 images.append(src)
         
-        # 2. Ищем в article
         if not images:
             article = soup.find('article')
             if article:
@@ -278,7 +254,6 @@ class NewsCollector:
         """Специальный парсер картинок для Cybersport"""
         images = []
         
-        # Ищем в article
         article = soup.find('article')
         if article:
             for img in article.find_all('img'):
@@ -307,11 +282,9 @@ class NewsCollector:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Удаляем мусор
             for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
                 tag.decompose()
             
-            # Определяем сайт по URL и выбираем соответствующий парсер картинок
             images = []
             
             if 'habr.com' in url.lower():
@@ -323,8 +296,6 @@ class NewsCollector:
             elif 'cybersport.ru' in url.lower():
                 images = self.extract_cybersport_images(soup)
             else:
-                # Универсальный парсер для остальных сайтов
-                # Ищем meta og:image
                 meta_image = soup.find('meta', property='og:image')
                 if meta_image and meta_image.get('content'):
                     img_url = meta_image['content']
@@ -332,7 +303,6 @@ class NewsCollector:
                         img_url = 'https:' + img_url
                     images.append(img_url)
                 else:
-                    # Ищем в article
                     article = soup.find('article')
                     if article:
                         for img in article.find_all('img'):
@@ -344,7 +314,6 @@ class NewsCollector:
                                         src = 'https:' + src
                                     images.append(src)
             
-            # Убираем дубликаты картинок
             unique_images = []
             seen = set()
             for img in images:
@@ -356,7 +325,6 @@ class NewsCollector:
                 self.stats['with_images'] += len(unique_images)
                 self.log(f"Найдено картинок: {len(unique_images)}", "IMAGE")
             
-            # Поиск текста
             text_parts = []
             
             article = soup.find('article')
@@ -390,70 +358,66 @@ class NewsCollector:
             return None, []
     
     def ai_rewrite(self, text: str, title: str, category: str) -> str:
-    """GigaChat переписывание с повторными попытками"""
-    if not CONFIG['USE_AI'] or len(text) < 100:
-        return text
-    
-    # Уменьшаем текст для ускорения
-    short_text = text[:800] if len(text) > 800 else text
-    
-    # Пробуем до 3 раз
-    for attempt in range(3):
-        try:
-            token = self.get_gigachat_token()
-            if not token:
-                return text
-            
-            self.log(f"GigaChat обрабатывает (попытка {attempt+1}/3)...", "AI")
-            
-            prompt = f"""Кратко перескажи новость (3-4 предложения):
+        """GigaChat переписывание с повторными попытками"""
+        if not CONFIG['USE_AI'] or len(text) < 100:
+            return text
+        
+        short_text = text[:800] if len(text) > 800 else text
+        
+        for attempt in range(3):
+            try:
+                token = self.get_gigachat_token()
+                if not token:
+                    return text
+                
+                self.log(f"GigaChat обрабатывает (попытка {attempt+1}/3)...", "AI")
+                
+                prompt = f"""Кратко перескажи новость (3-4 предложения):
 
 Заголовок: {title}
 Текст: {short_text}
 
 Пересказ:"""
-            
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json"
-            }
-            
-            data = {
-                "model": CONFIG['AI_MODEL'],
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": 0.7,
-                "max_tokens": 300,  # Уменьшили
-                "timeout": 15  # Добавили таймаут
-            }
-            
-            response = requests.post(
-                CONFIG['AI_API_URL'],
-                headers=headers,
-                json=data,
-                timeout=15,  # Уменьшили таймаут
-                verify=CONFIG['AI_VERIFY_SSL']
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                rewritten = result["choices"][0]["message"]["content"]
-                rewritten = re.sub(r'\s+', ' ', rewritten).strip()
-                self.stats['ai_processed'] += 1
-                self.log(f"✅ GigaChat готов: {len(rewritten)} символов", "AI")
-                return rewritten
-            else:
-                self.log(f"⚠️ Ошибка GigaChat: {response.status_code}, попытка {attempt+1}", "WARNING")
-                time.sleep(2)  # Ждем перед повтором
                 
-        except Exception as e:
-            self.log(f"⚠️ Ошибка в попытке {attempt+1}: {e}", "WARNING")
-            time.sleep(2)
-    
-    # Если все попытки провалились, возвращаем оригинал
-    self.log("❌ Все попытки GigaChat провалились, использую оригинал", "WARNING")
-    return text
+                headers = {
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json"
+                }
+                
+                data = {
+                    "model": CONFIG['AI_MODEL'],
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 300
+                }
+                
+                response = requests.post(
+                    CONFIG['AI_API_URL'],
+                    headers=headers,
+                    json=data,
+                    timeout=15,
+                    verify=CONFIG['AI_VERIFY_SSL']
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    rewritten = result["choices"][0]["message"]["content"]
+                    rewritten = re.sub(r'\s+', ' ', rewritten).strip()
+                    self.stats['ai_processed'] += 1
+                    self.log(f"✅ GigaChat готов: {len(rewritten)} символов", "AI")
+                    return rewritten
+                else:
+                    self.log(f"⚠️ Ошибка GigaChat: {response.status_code}, попытка {attempt+1}", "WARNING")
+                    time.sleep(2)
+                    
+            except Exception as e:
+                self.log(f"⚠️ Ошибка в попытке {attempt+1}: {e}", "WARNING")
+                time.sleep(2)
+        
+        self.log("❌ Все попытки GigaChat провалились, использую оригинал", "WARNING")
+        return text
     
     def run(self):
         """Основной метод запуска"""
