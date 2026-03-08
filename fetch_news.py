@@ -3,10 +3,9 @@
 
 """
 ФИНАЛЬНАЯ ВЕРСИЯ - ИСПРАВЛЕНИЕ ВСЕХ ПРОБЛЕМ:
-1. Убираем рекламу (РИА Новости, Лента.ру и т.д.)
-2. Исправляем пробелы (слова слипаются)
-3. Убираем дубликаты картинок
-4. Чистим текст от мусора
+1. Убираем мусор (com, ру и т.д.)
+2. Исправляем склеенные слова
+3. Правильно парсим ТАСС
 """
 
 import feedparser
@@ -39,7 +38,7 @@ CONFIG = {
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# ============ RSS ИСТОЧНИКИ (УВЕЛИЧЕНО ДЛЯ ВСЕХ КАТЕГОРИЙ) ============
+# РАСШИРЕННЫЕ ИСТОЧНИКИ
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
@@ -61,25 +60,21 @@ RSS_FEEDS = {
         'https://lenta.ru/rss/news/auto',
         'https://ria.ru/export/rss2/auto/index.xml',
         'https://motor.ru/rss',
-        'https://www.autonews.ru/export/rss2/news/index.xml',
     ],
     'Киберспорт': [
         'https://www.cybersport.ru/rss',
         'https://stopgame.ru/rss/news.xml',
-        'https://www.cybersport.ru/rss',
     ],
     'Культура': [
         'https://lenta.ru/rss/news/art',
         'https://ria.ru/export/rss2/culture/index.xml',
         'https://tass.ru/rss/v2.xml',
-        'https://www.mk.ru/rss/culture/index.xml',
     ],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
         'https://tass.ru/rss/v2.xml',
         'https://www.championat.com/news/rss/',
-        'https://www.sport-express.ru/rss/',
     ]
 }
 
@@ -87,79 +82,52 @@ class TextCleaner:
     """ОЧИСТКА ТЕКСТА ОТ МУСОРА"""
     
     @staticmethod
-    def fix_spaces(text: str) -> str:
-        """Исправляет слипшиеся слова"""
-        # Вставляем пробелы между словами где их нет
-        # Например: "Карпинасделалавыбор" -> "Карпина сделала выбор"
-        text = re.sub(r'([а-яА-Я])([А-Я][а-я])', r'\1 \2', text)
-        text = re.sub(r'([a-zA-Z])([A-Z][a-z])', r'\1 \2', text)
+    def remove_url_garbage(text: str) -> str:
+        """Удаляет мусор типа 'com' и 'ру' из текста"""
+        # Удаляем отдельно стоящие com, ru, ру и т.д.
+        text = re.sub(r'\s+com\s+', ' ', text)
+        text = re.sub(r'\s+ru\s+', ' ', text)
+        text = re.sub(r'\s+ру\s+', ' ', text)
+        text = re.sub(r'\s+рф\s+', ' ', text)
+        text = re.sub(r'\s+net\s+', ' ', text)
+        text = re.sub(r'\s+org\s+', ' ', text)
+        
+        # Удаляем точки после слов (оставляем только в конце предложений)
+        text = re.sub(r'(\w)\.(\w)', r'\1 \2', text)  # Разделяем слова с точкой внутри
+        text = re.sub(r'\.(\s+[а-я])', r'. \1', text)  # Исправляем точки без пробелов
+        
         return text
     
     @staticmethod
-    def remove_garbage(text: str) -> str:
-        """Удаляет рекламу и мусор"""
+    def fix_spaces(text: str) -> str:
+        """Исправляет слипшиеся слова"""
+        # Вставляем пробелы между словами где их нет
+        # Например: "Мироновне" -> "Миронов не"
         
-        # СПИСОК МУСОРНЫХ ФРАЗ ДЛЯ УДАЛЕНИЯ
-        garbage_phrases = [
-            # Названия источников
-            r'РИА Новости\.?',
-            r'ТАСС\.?',
-            r'Лента\.?ру',
-            r'Интерфакс\.?',
-            r'РБК\.?',
-            r'Газета\.?ру',
-            r'Коммерсантъ\.?',
-            r'Ведомости\.?',
-            r'Известия\.?',
-            r'МК\.?',
-            r'АиФ\.?',
-            r'Life\.?',
-            r'RT\.?',
-            r'Sputnik\.?',
-            
-            # Фразы-паразиты
-            r'Об этом сообщает корреспондент.*?\.',
-            r'Как сообщает.*?\.',
-            r'По информации.*?\.',
-            r'По данным.*?\.',
-            r'Передает.*?\.',
-            r'Со ссылкой на.*?\.',
-            r'Источник сообщает.*?\.',
-            r'Стало известно.*?\.',
-            
-            # Призывы и реклама
-            r'Подпишитесь.*?\.',
-            r'Следите за новостями.*?\.',
-            r'Читайте также.*?\.',
-            r'Смотрите также.*?\.',
-            r'По теме.*?\.',
-            r'Фото:.*?\.',
-            r'Видео:.*?\.',
-            r'Ссылка:.*?\.',
-            r'Источник:.*?\.',
-            
-            # Соцсети
-            r'Telegram.*?канал',
-            r'VKontakte',
-            r'Вконтакте',
-            r'YouTube',
-            r'Instagram',
-            r'Twitter',
-            r'Facebook',
-            
-            # Юридическое
-            r'©.*?\d{4}',
-            r'Все права защищены',
-            r'18\+',
-            r'16\+',
-            r'12\+',
-            r'cookie',
-            r'конфиденциальность',
-            r'политика обработки',
-        ]
+        # Проверяем известные случаи
+        known_fixes = {
+            'не': 'не',
+            'на': 'на',
+            'по': 'по',
+            'за': 'за',
+            'в': 'в',
+            'с': 'с',
+            'к': 'к',
+            'у': 'у',
+            'от': 'от',
+            'до': 'до',
+            'из': 'из',
+            'без': 'без',
+            'для': 'для',
+        }
         
-        for pattern in garbage_phrases:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        # Ищем паттерны вида "словоне" -> "слово не"
+        for word in known_fixes:
+            pattern = rf'([а-я]+)({word})([а-я]+)'
+            text = re.sub(pattern, r'\1 \2 \3', text, flags=re.IGNORECASE)
+            
+            pattern2 = rf'([а-я]+)({word})$'
+            text = re.sub(pattern2, r'\1 \2', text, flags=re.IGNORECASE)
         
         return text
     
@@ -176,24 +144,50 @@ class TextCleaner:
         text = html.unescape(text)
         
         # 3. Удаляем мусорные фразы
-        text = TextCleaner.remove_garbage(text)
+        garbage_phrases = [
+            r'Читайте также:.*?(?=\.|$)',
+            r'Фото:.*?(?=\.|$)',
+            r'Видео:.*?(?=\.|$)',
+            r'Смотрите также.*?(?=\.|$)',
+            r'По теме.*?(?=\.|$)',
+            r'Источник:.*?(?=\.|$)',
+            r'Ссылка:.*?(?=\.|$)',
+            r'Telegram',
+            r'VKontakte',
+            r'Вконтакте',
+            r'YouTube',
+            r'Instagram',
+            r'Twitter',
+            r'Facebook',
+            r'©.*?\d{4}',
+            r'Все права защищены',
+            r'18\+',
+            r'16\+',
+            r'12\+',
+        ]
         
-        # 4. Удаляем лишние пробелы
+        for pattern in garbage_phrases:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        
+        # 4. Удаляем URL мусор
+        text = TextCleaner.remove_url_garbage(text)
+        
+        # 5. Удаляем лишние пробелы
         text = re.sub(r'\s+', ' ', text)
         
-        # 5. Исправляем слипшиеся слова
+        # 6. Исправляем склеенные слова
         text = TextCleaner.fix_spaces(text)
         
-        # 6. Чистим пунктуацию
+        # 7. Чистим пунктуацию
         text = re.sub(r'\.{3,}', '.', text)
         text = re.sub(r'\.{2,}', '.', text)
         text = re.sub(r'\s+\.', '.', text)
         text = re.sub(r'\.\s+', '. ', text)
         
-        # 7. Убираем пробелы перед знаками препинания
+        # 8. Убираем пробелы перед знаками препинания
         text = re.sub(r'\s+([,.;:!?])', r'\1', text)
         
-        # 8. Убираем множественные пробелы
+        # 9. Финальная чистка пробелов
         text = re.sub(r'\s+', ' ', text)
         
         return text.strip()
@@ -215,7 +209,7 @@ class NewsCollector:
             'duplicate_images_removed': 0
         }
         
-        self.seen_images = set()  # Для отслеживания дубликатов картинок
+        self.seen_images = set()
         
         self.session = requests.Session()
         self.session.headers.update({
@@ -230,21 +224,6 @@ class NewsCollector:
             "AI": "🤖", "IMAGE": "📸", "TEXT": "📝"
         }.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
-    
-    def get_unique_images(self, images: List[str]) -> List[str]:
-        """Убирает дубликаты картинок"""
-        unique = []
-        for img in images:
-            # Нормализуем URL (убираем параметры)
-            base_url = img.split('?')[0]
-            
-            if base_url not in self.seen_images:
-                self.seen_images.add(base_url)
-                unique.append(img)
-            else:
-                self.stats['duplicate_images_removed'] += 1
-        
-        return unique[:CONFIG['MAX_IMAGES']]
     
     def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
         """Загрузка страницы и извлечение текста"""
@@ -273,27 +252,33 @@ class NewsCollector:
                             src = 'https:' + src
                         images.append(src)
             
-            # Ищем текст
+            # Ищем текст - СПЕЦИАЛЬНО ДЛЯ ТАСС
             text_parts = []
             
-            # Пробуем найти статью
-            article = (soup.find('article') or 
-                      soup.find('main') or 
-                      soup.find('div', class_=re.compile(r'article|content|text|post|news', re.I)))
-            
+            # 1. Ищем article
+            article = soup.find('article')
             if article:
-                paragraphs = article.find_all('p')
-                for p in paragraphs[:15]:
+                # Для ТАСС ищем все параграфы
+                paragraphs = article.find_all(['p', 'div'], class_=re.compile(r'paragraph|text|content', re.I))
+                for p in paragraphs:
                     text = p.get_text(strip=True)
-                    if len(text) > 40:
+                    if len(text) > 30:
                         text_parts.append(text)
             
-            # Если не нашли, берем все параграфы
+            # 2. Ищем все параграфы
             if not text_parts:
                 paragraphs = soup.find_all('p')
                 for p in paragraphs[:20]:
                     text = p.get_text(strip=True)
                     if len(text) > 50:
+                        text_parts.append(text)
+            
+            # 3. Для ТАСС ищем специфические классы
+            if not text_parts:
+                tass_paragraphs = soup.find_all('p', class_=re.compile(r'Paragraph|paragraph', re.I))
+                for p in tass_paragraphs:
+                    text = p.get_text(strip=True)
+                    if len(text) > 30:
                         text_parts.append(text)
             
             if text_parts:
@@ -303,7 +288,12 @@ class NewsCollector:
                 full_text = TextCleaner.clean_article_text(full_text)
                 
                 # Убираем дубликаты картинок
-                unique_images = self.get_unique_images(images)
+                unique_images = []
+                seen = set()
+                for img in images:
+                    if img not in seen:
+                        seen.add(img)
+                        unique_images.append(img)
                 
                 if unique_images:
                     self.stats['with_images'] += 1
@@ -311,7 +301,7 @@ class NewsCollector:
                 self.log(f"Текст: {len(full_text)} символов, Картинок: {len(unique_images)}", "TEXT")
                 self.stats['text_found'] += 1
                 
-                return full_text, unique_images
+                return full_text, unique_images[:CONFIG['MAX_IMAGES']]
             
             return None, []
             
@@ -330,6 +320,7 @@ class NewsCollector:
             prompt = f"""Перепиши эту новость своими словами. 
 Сохрани все факты, но убери упоминания других сайтов (РИА, ТАСС, Лента и т.д.).
 Напиши чистый, грамотный текст из 4-5 предложений.
+Исправь все склеенные слова и убери лишние точки.
 
 Заголовок: {title}
 Текст: {text[:1500]}
@@ -359,8 +350,8 @@ class NewsCollector:
     def run(self):
         print("\n" + "="*70)
         print("🚀 ФИНАЛЬНЫЙ СБОРЩИК НОВОСТЕЙ")
-        print("🧹 С очисткой текста и удалением рекламы")
-        print("📸 Без дубликатов картинок")
+        print("🧹 С очисткой текста и удалением мусора")
+        print("🔧 Исправлением склеенных слов")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
@@ -375,7 +366,6 @@ class NewsCollector:
                     for item in self.all_news:
                         if item.get('originalLink'):
                             self.existing_links.add(item['originalLink'])
-                        # Собираем уже использованные картинки
                         for img in item.get('images', []):
                             self.seen_images.add(img.split('?')[0])
                 self.log(f"Загружено {len(self.all_news)} старых новостей")
@@ -477,7 +467,6 @@ class NewsCollector:
         print(f"   Страниц загружено: {self.stats['page_loaded']}")
         print(f"   Текст найден: {self.stats['text_found']}")
         print(f"   С картинками: {self.stats['with_images']}")
-        print(f"   Дублей картинок убрано: {self.stats['duplicate_images_removed']}")
         print(f"   Ошибок: {self.stats['errors']}")
         print("="*70)
 
