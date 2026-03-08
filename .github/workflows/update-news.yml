@@ -47,6 +47,8 @@ jobs:
           echo "};" >> public/config.js
       
       - name: Запуск импортера
+        env:
+          GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
         run: python fetch_news.py
       
       - name: Проверка создания файлов
