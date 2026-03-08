@@ -42,7 +42,7 @@ CONFIG = {
     'AI_MODEL': 'GigaChat',
     'AI_API_URL': 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
     'AI_AUTH_URL': 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth',
-    'AI_CLIENT_SECRET': 'MDE5Y2NlZGEtMDFiNy03MjMzLTkwZDEtYmMyZTU5MjVjN2NkOjE4YzZkNzEwLWNiOTEtNDNlNi04OGQ1LWI1Yzc4Y2EzOGQ2MA==',
+    'AI_CLIENT_SECRET': os.environ.get('GIGACHAT_CLIENT_SECRET', ''),
     
     # Отключаем проверку SSL для работы в России
     'AI_VERIFY_SSL': False,
@@ -65,17 +65,26 @@ RSS_FEEDS = {
         'https://ria.ru/export/rss2/technology/index.xml',
         'https://habr.com/ru/rss/news/?fl=ru',
     ],
-    'Авто': [
-        'https://lenta.ru/rss/news/auto',
-        'https://ria.ru/export/rss2/auto/index.xml',
-    ],
-    'Киберспорт': [
-        'https://www.cybersport.ru/rss',
-    ],
-    'Культура': [
-        'https://lenta.ru/rss/news/art',
-        'https://ria.ru/export/rss2/culture/index.xml',
-    ],
+    # Замените в RSS_FEEDS проблемные категории на эти
+'Авто': [
+    'https://lenta.ru/rss/news/auto',
+    'https://ria.ru/export/rss2/auto/index.xml',
+    'https://motor.ru/rss',
+    'https://news.rambler.ru/rss/auto/',  # Добавить
+    'https://auto.mail.ru/rss/',          # Добавить
+],
+'Киберспорт': [
+    'https://www.cybersport.ru/rss',
+    'https://stopgame.ru/rss/news.xml',
+    'https://www.igromania.ru/rss/news.xml',  # Добавить
+    'https://kanobu.ru/rss/',                  # Добавить
+],
+'Культура': [
+    'https://lenta.ru/rss/news/art',
+    'https://ria.ru/export/rss2/culture/index.xml',
+    'https://www.mk.ru/rss/culture/index.xml',  # Добавить
+    'https://rg.ru/export/rss/kultura/index.xml', # Добавить
+],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
