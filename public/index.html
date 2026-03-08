@@ -1007,82 +1007,92 @@ async function loadNewsFromJSON() {
         }
 
         function updateHeroSection(category, page) {
-            if (!category && page === 1 && allFilteredNews.length > 0) {
-                const mainNews = allFilteredNews[0];
-                const sideNews = allFilteredNews.slice(1, 4);
+    if (!category && page === 1 && allFilteredNews.length > 0) {
+        // Ищем ПЕРВУЮ новость С КАРТИНКОЙ для главной
+        let mainNews = null;
+        let mainNewsIndex = -1;
+        
+        for (let i = 0; i < allFilteredNews.length; i++) {
+            if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
+                mainNews = allFilteredNews[i];
+                mainNewsIndex = i;
+                break;
+            }
+        }
+        
+        // Если нашли новость с картинкой
+        if (mainNews) {
+            // Берем следуюшие 3 новости для сайдбара (исключая главную)
+            const sideNews = allFilteredNews
+                .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
+                .slice(0, 3);
+            
+            const mainImageUrl = mainNews.images[0]; // Первая картинка
+            
+            let heroHtml = `
+                <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
+                    <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
+                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
+                    <div class="main-story-content">
+                        <span class="story-category">${mainNews.category}</span>
+                        <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
+                        <p>${mainNews.description.substring(0, 150)}...</p>
+                        <div class="story-meta">${mainNews.published}</div>
+                    </div>
+                </div>
+                <div class="side-stories">`;
+            
+            sideNews.forEach(item => {
+                const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
                 
-                const mainImageUrl = getNewsImage(mainNews);
-                
-                let heroHtml = '';
-                
-                if (mainImageUrl === 'placeholder') {
+                if (sideImageUrl) {
                     heroHtml += `
-                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-logo">ТОЛК</div>
-                                <div class="placeholder-category">${mainNews.category}</div>
-                                <div class="placeholder-message"></div>
-                            </div>
-                            <div class="main-story-content">
-                                <span class="story-category">${mainNews.category}</span>
-                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                                <p>${mainNews.description.substring(0, 150)}...</p>
-                                <div class="story-meta">${mainNews.published}</div>
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
+                            <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
+                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-small\\'>ТОЛК</div></div>');">
+                            <div class="side-item-content">
+                                <h3>${item.title.substring(0, 50)}...</h3>
+                                <div class="time">${item.published}</div>
                             </div>
                         </div>
                     `;
                 } else {
                     heroHtml += `
-                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                            <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
-                            <div class="main-story-content">
-                                <span class="story-category">${mainNews.category}</span>
-                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                                <p>${mainNews.description.substring(0, 150)}...</p>
-                                <div class="story-meta">${mainNews.published}</div>
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
+                            <div class="placeholder-image">
+                                <div class="placeholder-small">ТОЛК</div>
+                            </div>
+                            <div class="side-item-content">
+                                <h3>${item.title.substring(0, 50)}...</h3>
+                                <div class="time">${item.published}</div>
                             </div>
                         </div>
                     `;
                 }
-                
-                heroHtml += `<div class="side-stories">`;
-                
-                sideNews.forEach(item => {
-                    const sideImageUrl = getNewsImage(item);
-                    
-                    if (sideImageUrl === 'placeholder') {
-                        heroHtml += `
-                            <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                                <div class="placeholder-image">
-                                    <div class="placeholder-small">ТОЛК</div>
-                                </div>
-                                <div class="side-item-content">
-                                    <h3>${item.title.substring(0, 50)}...</h3>
-                                    <div class="time">${item.published}</div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        heroHtml += `
-                            <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                                <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
-                                     onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-small\\'>ТОЛК</div></div>');">
-                                <div class="side-item-content">
-                                    <h3>${item.title.substring(0, 50)}...</h3>
-                                    <div class="time">${item.published}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-                
-                heroHtml += '</div>';
-                document.getElementById('heroSection').innerHTML = heroHtml;
-            } else {
-                document.getElementById('heroSection').innerHTML = '';
-            }
+            });
+            
+            heroHtml += '</div>';
+            document.getElementById('heroSection').innerHTML = heroHtml;
+        } else {
+            // Если вообще нет новостей с картинками, показываем заглушку
+            document.getElementById('heroSection').innerHTML = `
+                <div class="main-story">
+                    <div class="placeholder-image" style="height: 300px;">
+                        <div class="placeholder-logo">ТОЛК</div>
+                        <div class="placeholder-category">Новости</div>
+                    </div>
+                    <div class="main-story-content">
+                        <span class="story-category">Скоро</span>
+                        <h2>Свежие новости с картинками появятся в ближайшее время</h2>
+                        <p>Мы собираем для вас самые актуальные новости...</p>
+                    </div>
+                </div>
+            `;
         }
+    } else {
+        document.getElementById('heroSection').innerHTML = '';
+    }
+}
 
         function preloadNextPage(news, nextPage) {
             setTimeout(() => {
