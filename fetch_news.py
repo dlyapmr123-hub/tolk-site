@@ -131,7 +131,7 @@ def extract_text_fast(html_content):
     try:
         # Ищем картинки
         img_matches = re.findall(r'<img[^>]+src="([^">]+)"', html_content)
-        for url in img_matches[:MAX_IMAGES * 2]:  # Ищем больше для фильтрации
+        for url in img_matches[:MAX_IMAGES * 2]:
             if url.startswith('//'):
                 url = 'https:' + url
             elif url.startswith('/'):
