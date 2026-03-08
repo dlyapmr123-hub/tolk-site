@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-ФИНАЛЬНАЯ ВЕРСИЯ - GigaChat API
+ФИНАЛЬНАЯ ВЕРСИЯ - УЛУЧШЕННЫЙ ПАРСИНГ КАРТИНОК
+Специальная обработка для Habr, Lenta, РИА
 """
 
 import feedparser
@@ -15,11 +16,17 @@ import os
 import sys
 import traceback
 import uuid
+import warnings
+import urllib3
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
 import requests
 from bs4 import BeautifulSoup
+
+# Отключаем предупреждения о SSL
+warnings.filterwarnings('ignore')
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Конфигурация с GigaChat
 CONFIG = {
@@ -77,7 +84,7 @@ RSS_FEEDS = {
 }
 
 class NewsCollector:
-    """Сборщик новостей с GigaChat"""
+    """Сборщик новостей с улучшенным парсингом картинок"""
     
     def __init__(self):
         self.existing_links = set()
@@ -156,6 +163,133 @@ class NewsCollector:
             self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
             return None
     
+    def extract_habr_images(self, soup, url) -> List[str]:
+        """Специальный парсер картинок для Хабра"""
+        habr_images = []
+        
+        # 1. Пробуем meta og:image (самый надежный способ)
+        meta_image = soup.find('meta', property='og:image')
+        if meta_image and meta_image.get('content'):
+            img_url = meta_image['content']
+            if img_url.startswith('//'):
+                img_url = 'https:' + img_url
+            habr_images.append(img_url)
+            self.log(f"Найдено og:image для Habr", "IMAGE")
+            return habr_images[:CONFIG['MAX_IMAGES']]
+        
+        # 2. Ищем в статье
+        article = soup.find('article')
+        if article:
+            # Ищем все изображения внутри статьи
+            for img in article.find_all('img'):
+                src = img.get('src') or img.get('data-src')
+                if not src:
+                    continue
+                
+                # Проверяем классы - пропускаем аватарки
+                img_class = ' '.join(img.get('class', []))
+                if re.search(r'avatar|user-picture|userpic|author', img_class, re.I):
+                    continue
+                
+                # Проверяем URL - пропускаем иконки и маленькие картинки
+                if re.search(r'avatar|icon|logo|favicon|pixel|spacer', src.lower()):
+                    continue
+                
+                if src.startswith('//'):
+                    src = 'https:' + src
+                habr_images.append(src)
+                
+                if len(habr_images) >= CONFIG['MAX_IMAGES']:
+                    break
+        
+        # 3. Если ничего не нашли, ищем в любых изображениях страницы
+        if not habr_images:
+            all_images = soup.find_all('img')
+            for img in all_images:
+                src = img.get('src') or img.get('data-src')
+                if not src:
+                    continue
+                
+                # Берем только большие картинки (по расширению)
+                if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                    if not re.search(r'avatar|icon|logo|favicon', src.lower()):
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        habr_images.append(src)
+                        if len(habr_images) >= CONFIG['MAX_IMAGES']:
+                            break
+        
+        return habr_images[:CONFIG['MAX_IMAGES']]
+    
+    def extract_lenta_images(self, soup) -> List[str]:
+        """Специальный парсер картинок для Ленты"""
+        images = []
+        
+        # 1. Основные картинки статей
+        lenta_images = soup.find_all('img', class_='picture__image')
+        for img in lenta_images:
+            src = img.get('src')
+            if src:
+                if src.startswith('//'):
+                    src = 'https:' + src
+                images.append(src)
+                self.log("Найдена картинка Lenta (picture__image)", "IMAGE")
+        
+        # 2. Если не нашли, ищем в article
+        if not images:
+            article = soup.find('article')
+            if article:
+                for img in article.find_all('img'):
+                    src = img.get('src') or img.get('data-src')
+                    if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        images.append(src)
+        
+        return images[:CONFIG['MAX_IMAGES']]
+    
+    def extract_ria_images(self, soup) -> List[str]:
+        """Специальный парсер картинок для РИА"""
+        images = []
+        
+        # 1. Ищем в photoview
+        ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
+        for img in ria_images:
+            src = img.get('src')
+            if src:
+                if src.startswith('//'):
+                    src = 'https:' + src
+                images.append(src)
+        
+        # 2. Ищем в article
+        if not images:
+            article = soup.find('article')
+            if article:
+                for img in article.find_all('img'):
+                    src = img.get('src') or img.get('data-src')
+                    if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        images.append(src)
+        
+        return images[:CONFIG['MAX_IMAGES']]
+    
+    def extract_cybersport_images(self, soup) -> List[str]:
+        """Специальный парсер картинок для Cybersport"""
+        images = []
+        
+        # Ищем в article
+        article = soup.find('article')
+        if article:
+            for img in article.find_all('img'):
+                src = img.get('src') or img.get('data-src')
+                if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                    if src.startswith('//'):
+                        src = 'https:' + src
+                    images.append(src)
+        
+        return images[:CONFIG['MAX_IMAGES']]
+    
     def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
         """Загрузка страницы и извлечение текста"""
         try:
@@ -173,49 +307,44 @@ class NewsCollector:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
+            # Удаляем мусор
             for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
                 tag.decompose()
             
-            # Поиск картинок
+            # Определяем сайт по URL и выбираем соответствующий парсер картинок
             images = []
             
-            # Для Ленты
-            lenta_images = soup.find_all('img', class_='picture__image')
-            for img in lenta_images:
-                src = img.get('src')
-                if src:
-                    if src.startswith('//'):
-                        src = 'https:' + src
-                    images.append(src)
-                    self.log(f"Найдена картинка Lenta", "IMAGE")
+            if 'habr.com' in url.lower():
+                images = self.extract_habr_images(soup, url)
+            elif 'lenta.ru' in url.lower():
+                images = self.extract_lenta_images(soup)
+            elif 'ria.ru' in url.lower():
+                images = self.extract_ria_images(soup)
+            elif 'cybersport.ru' in url.lower():
+                images = self.extract_cybersport_images(soup)
+            else:
+                # Универсальный парсер для остальных сайтов
+                # Ищем meta og:image
+                meta_image = soup.find('meta', property='og:image')
+                if meta_image and meta_image.get('content'):
+                    img_url = meta_image['content']
+                    if img_url.startswith('//'):
+                        img_url = 'https:' + img_url
+                    images.append(img_url)
+                else:
+                    # Ищем в article
+                    article = soup.find('article')
+                    if article:
+                        for img in article.find_all('img'):
+                            src = img.get('src') or img.get('data-src')
+                            if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                                img_class = ' '.join(img.get('class', []))
+                                if not re.search(r'avatar|user|author|profile', img_class, re.I):
+                                    if src.startswith('//'):
+                                        src = 'https:' + src
+                                    images.append(src)
             
-            # Для РИА
-            ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
-            for img in ria_images:
-                src = img.get('src')
-                if src:
-                    if src.startswith('//'):
-                        src = 'https:' + src
-                    images.append(src)
-            
-            # Для всех сайтов
-            all_images = soup.find_all('img')
-            for img in all_images:
-                src = img.get('src') or img.get('data-src')
-                if not src:
-                    continue
-                
-                img_class = ' '.join(img.get('class', []))
-                if re.search(r'(author|avatar|profile|userpic|topic-authors)', img_class, re.I):
-                    continue
-                
-                if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
-                    if not re.search(r'(icon|logo|favicon|pixel|spacer|button)', src.lower()):
-                        if src.startswith('//'):
-                            src = 'https:' + src
-                        images.append(src)
-            
-            # Убираем дубликаты
+            # Убираем дубликаты картинок
             unique_images = []
             seen = set()
             for img in images:
@@ -325,6 +454,7 @@ class NewsCollector:
         """Основной метод запуска"""
         print("\n" + "="*70)
         print("🚀 СБОРЩИК НОВОСТЕЙ (GigaChat)")
+        print("📸 Улучшенный парсинг картинок")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
