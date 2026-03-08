@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Важно для pull
+          fetch-depth: 0
       
       - name: Установка Python
         uses: actions/setup-python@v4
@@ -64,18 +64,18 @@ jobs:
             echo "Есть новые новости"
           fi
       
-      - name: Pull последних изменений
-        if: steps.check_changes.outputs.changed == 'true'
-        run: |
-          git pull --rebase origin main
-          echo "✅ Pull выполнен"
-      
       - name: Коммит и пуш изменений
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          git add public/news_data_v3.json public/version.json
+          # Сохраняем изменения
           git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
-          git push origin main
+          
+          # Пробуем запушить, если не получается - делаем pull и push
+          if ! git push origin main; then
+            echo "⚠️ Не удалось запушить, делаем pull..."
+            git pull --rebase origin main
+            git push origin main
+          fi
           echo "✅ Изменения отправлены"
       
       - name: Деплой на Firebase Hosting
