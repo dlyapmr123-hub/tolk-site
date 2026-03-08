@@ -31,7 +31,7 @@ CONFIG = {
     'USE_AI': True,
     'AI_MODEL': 'gpt-3.5-turbo',
     'AI_API_URL': 'https://openrouter.ai/api/v1/chat/completions',
-    'AI_API_KEY': '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',
+    'AI_API_KEY': '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',
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
