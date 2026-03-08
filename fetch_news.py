@@ -42,31 +42,33 @@ MAX_ARTICLES_PER_FEED = 3
 REQUEST_DELAY = 1
 MAX_IMAGES = 3
 
-# ============ RSS ИСТОЧНИКИ (ТОЛЬКО БЫСТРЫЕ) ============
+# ============ RSS ИСТОЧНИКИ (ТОЛЬКО НАДЕЖНЫЕ) ============
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',
+        'https://ria.ru/export/rss2/politics/index.xml',           # RIA.ru - супер быстро
+        'https://tass.ru/rss/v2.xml',                              # ТАСС - быстро
     ],
     'Экономика': [
-        'https://ria.ru/export/rss2/economy/index.xml',
-        'https://www.rbc.ru/rss/',
+        'https://ria.ru/export/rss2/economy/index.xml',            # RIA.ru
+        'https://tass.ru/rss/v2.xml',                              # ТАСС (там есть экономика)
     ],
     'Технологии': [
-        'https://ria.ru/export/rss2/technology/index.xml',
-        'https://habr.com/ru/rss/news/?fl=ru',
+        'https://ria.ru/export/rss2/technology/index.xml',         # RIA.ru
+        'https://tass.ru/rss/v2.xml',                              # ТАСС
     ],
     'Авто': [
-        'https://ria.ru/export/rss2/auto/index.xml',
+        'https://ria.ru/export/rss2/auto/index.xml',               # RIA.ru
     ],
     'Киберспорт': [
-        'https://www.cybersport.ru/rss',
+        'https://www.cybersport.ru/rss',                           # Cybersport.ru - быстро
     ],
     'Культура': [
-        'https://ria.ru/export/rss2/culture/index.xml',
+        'https://ria.ru/export/rss2/culture/index.xml',            # RIA.ru
+        'https://tass.ru/rss/v2.xml',                              # ТАСС
     ],
     'Спорт': [
-        'https://ria.ru/export/rss2/sport/index.xml',
-        'https://www.championat.com/news/rss/',
+        'https://ria.ru/export/rss2/sport/index.xml',              # RIA.ru
+        'https://tass.ru/rss/v2.xml',                              # ТАСС
     ]
 }
 
