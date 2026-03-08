@@ -5,9 +5,8 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
-# Добавляем права доступа
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -15,28 +14,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # Явно устанавливаем Node.js (важно для Firebase Action)
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
+      
       - name: Установка Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Установка зависимостей Python
+      
+      - name: Установка зависимостей
         run: |
           pip install feedparser requests beautifulsoup4 lxml
-
+      
       - name: Создание serviceAccountKey.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
-
+      
       - name: Создание config.js
         run: |
           echo "const FIREBASE_CONFIG = {" > public/config.js
@@ -47,37 +45,38 @@ jobs:
           echo "  messagingSenderId: \"79835817899\"," >> public/config.js
           echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
           echo "};" >> public/config.js
-
+      
       - name: Запуск импортера
         run: python fetch_news.py
-
+      
+      - name: Проверка создания файлов
+        run: |
+          echo "📁 Содержимое public/:"
+          ls -la public/
+          if [ -f public/news_data_v3.json ]; then
+            echo "✅ news_data_v3.json создан, размер: $(wc -c < public/news_data_v3.json) байт"
+          else
+            echo "❌ news_data_v3.json НЕ создан!"
+          fi
+      
       - name: Настройка Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Проверка изменений
-        id: check_changes
+      
+      - name: Коммит и пуш изменений
         run: |
           git add public/news_data_v3.json public/version.json || true
-
-          if git diff --staged --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "Нет новых новостей"
+          if ! git diff --staged --quiet; then
+            git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
+            git pull --rebase origin main || true
+            git push origin main
+            echo "✅ Изменения отправлены"
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Есть новые новости"
+            echo "ℹ️ Нет изменений для коммита"
           fi
-
-      - name: Коммит и пуш изменений
-        if: steps.check_changes.outputs.changed == 'true'
-        run: |
-          git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
-          git pull --rebase origin main || true
-          git push origin main
-
+      
       - name: Деплой на Firebase Hosting
-        if: steps.check_changes.outputs.changed == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
