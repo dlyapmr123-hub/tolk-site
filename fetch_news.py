@@ -390,28 +390,28 @@ class NewsCollector:
             return None, []
     
     def ai_rewrite(self, text: str, title: str, category: str) -> str:
-        """GigaChat переписывание"""
-        if not CONFIG['USE_AI'] or len(text) < 100:
-            return text
-        
+    """GigaChat переписывание с повторными попытками"""
+    if not CONFIG['USE_AI'] or len(text) < 100:
+        return text
+    
+    # Уменьшаем текст для ускорения
+    short_text = text[:800] if len(text) > 800 else text
+    
+    # Пробуем до 3 раз
+    for attempt in range(3):
         try:
             token = self.get_gigachat_token()
             if not token:
                 return text
             
-            self.log("GigaChat обрабатывает...", "AI")
+            self.log(f"GigaChat обрабатывает (попытка {attempt+1}/3)...", "AI")
             
-            prompt = f"""Перепиши эту новость своими словами, сохранив все факты.
-Напиши связный текст из 4-5 предложений.
-Убери упоминания других сайтов (РИА, ТАСС, Лента и т.д.).
+            prompt = f"""Кратко перескажи новость (3-4 предложения):
 
 Заголовок: {title}
-Категория: {category}
+Текст: {short_text}
 
-Текст:
-{text[:1500]}
-
-Переписанный текст (только текст, без пояснений):"""
+Пересказ:"""
             
             headers = {
                 "Authorization": f"Bearer {token}",
@@ -424,14 +424,15 @@ class NewsCollector:
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.7,
-                "max_tokens": 600
+                "max_tokens": 300,  # Уменьшили
+                "timeout": 15  # Добавили таймаут
             }
             
             response = requests.post(
                 CONFIG['AI_API_URL'],
                 headers=headers,
                 json=data,
-                timeout=30,
+                timeout=15,  # Уменьшили таймаут
                 verify=CONFIG['AI_VERIFY_SSL']
             )
             
@@ -443,12 +444,16 @@ class NewsCollector:
                 self.log(f"✅ GigaChat готов: {len(rewritten)} символов", "AI")
                 return rewritten
             else:
-                self.log(f"⚠️ Ошибка GigaChat: {response.status_code}", "WARNING")
-                return text
+                self.log(f"⚠️ Ошибка GigaChat: {response.status_code}, попытка {attempt+1}", "WARNING")
+                time.sleep(2)  # Ждем перед повтором
                 
         except Exception as e:
-            self.log(f"⚠️ Ошибка GigaChat: {e}", "WARNING")
-            return text
+            self.log(f"⚠️ Ошибка в попытке {attempt+1}: {e}", "WARNING")
+            time.sleep(2)
+    
+    # Если все попытки провалились, возвращаем оригинал
+    self.log("❌ Все попытки GigaChat провалились, использую оригинал", "WARNING")
+    return text
     
     def run(self):
         """Основной метод запуска"""
