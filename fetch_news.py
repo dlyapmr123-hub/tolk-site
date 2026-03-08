@@ -43,33 +43,29 @@ REQUEST_DELAY = 1  # Задержка между запросами
 MAX_IMAGES = 3  # Максимум картинок на новость
 
 # ============ RSS ИСТОЧНИКИ (ТОЛЬКО БЫСТРЫЕ) ============
+# ============ RSS ИСТОЧНИКИ (СУПЕР БЫСТРЫЕ) ============
 RSS_FEEDS = {
     'Политика': [
-        'https://lenta.ru/rss/news/politics',                    # Lenta.ru - быстро
-        'https://ria.ru/export/rss2/politics/index.xml',         # RIA.ru - быстро
+        'https://ria.ru/export/rss2/politics/index.xml',         # Только RIA.ru
     ],
     'Экономика': [
-        'https://lenta.ru/rss/news/economics',                    # Lenta.ru
         'https://ria.ru/export/rss2/economy/index.xml',          # RIA.ru
         'https://www.rbc.ru/rss/',                                # RBC.ru
     ],
     'Технологии': [
-        'https://lenta.ru/rss/news/technology',                   # Lenta.ru
         'https://ria.ru/export/rss2/technology/index.xml',       # RIA.ru
         'https://habr.com/ru/rss/news/?fl=ru',                    # Habr.com
     ],
     'Авто': [
-        'https://lenta.ru/rss/news/auto',                         # Lenta.ru
+        'https://ria.ru/export/rss2/auto/index.xml',             # RIA.ru авто
     ],
     'Киберспорт': [
         'https://www.cybersport.ru/rss',                          # Cybersport.ru
     ],
     'Культура': [
-        'https://lenta.ru/rss/news/art',                          # Lenta.ru
         'https://ria.ru/export/rss2/culture/index.xml',          # RIA.ru
     ],
     'Спорт': [
-        'https://lenta.ru/rss/news/sport',                        # Lenta.ru
         'https://ria.ru/export/rss2/sport/index.xml',            # RIA.ru
         'https://www.championat.com/news/rss/',                   # Championat.com
     ]
