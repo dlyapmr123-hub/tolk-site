@@ -1099,14 +1099,14 @@ async function loadNewsFromJSON() {
                         </div>
                     `;
                 } else {
-                    // Без картинки - красивый градиент
+                    // Без картинки - как в категориях
                     heroHtml += `
                         <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
-                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color);">
-                            <div class="side-item-content" style="padding: 0.5rem 0;">
-                                <div class="card-category" style="margin-bottom: 0.3rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3 style="font-size: 1rem; margin-bottom: 0.3rem;">${item.title.substring(0, 50)}...</h3>
-                                <div class="time" style="font-size: 0.75rem;">${item.published}</div>
+                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                            <div class="side-item-content" style="width: 100%;">
+                                <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3 style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                <div class="time" style="font-size: 0.75rem; color: var(--secondary-text);">${item.published}</div>
                             </div>
                         </div>
                     `;
@@ -1116,17 +1116,37 @@ async function loadNewsFromJSON() {
             heroHtml += '</div>';
             document.getElementById('heroSection').innerHTML = heroHtml;
         } else {
-            // Если вообще нет новостей с картинками - показываем заглушку
-            document.getElementById('heroSection').innerHTML = `
-                <div class="main-story" style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
+            // Если нет новостей с картинками - показываем все подряд
+            const firstNews = allFilteredNews.slice(0, 4);
+            
+            let heroHtml = `
+                <div class="main-story" onclick="window.location='/article.html?id=${firstNews[0].id}'" 
+                     style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
                     <div class="main-story-content" style="padding: 2rem;">
-                        <span class="story-category">Скоро</span>
-                        <h2>Свежие новости появятся в ближайшее время</h2>
-                        <p>Мы собираем для вас самые актуальные новости со всего мира...</p>
+                        <span class="story-category">${firstNews[0].category}</span>
+                        <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
+                        <p>${firstNews[0].description.substring(0, 150)}...</p>
+                        <div class="story-meta">${firstNews[0].published}</div>
                     </div>
                 </div>
-                <div class="side-stories"></div>
-            `;
+                <div class="side-stories">`;
+            
+            // Остальные новости
+            firstNews.slice(1, 4).forEach(item => {
+                heroHtml += `
+                    <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                         style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                        <div class="side-item-content" style="width: 100%;">
+                            <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                            <div class="time" style="font-size: 0.75rem;">${item.published}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            heroHtml += '</div>';
+            document.getElementById('heroSection').innerHTML = heroHtml;
         }
     } else {
         document.getElementById('heroSection').innerHTML = '';
