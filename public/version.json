@@ -1,10 +1,9 @@
 {
-  "version": 1772985630.283574,
-  "updated": "2026-03-08T16:00:30.283578",
-  "total": 56,
-  "new": 0,
+  "version": 1772985944.167038,
+  "updated": "2026-03-08T16:05:44.167042",
+  "total": 58,
+  "new": 2,
   "processed": 150,
-  "skipped_already_exists": 150,
-  "no_text_count": 0,
+  "skipped_already_exists": 148,
   "with_images": 8
 }
