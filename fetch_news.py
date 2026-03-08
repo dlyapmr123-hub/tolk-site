@@ -39,34 +39,47 @@ CONFIG = {
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# БЫСТРЫЕ ИСТОЧНИКИ
+# ============ RSS ИСТОЧНИКИ (УВЕЛИЧЕНО ДЛЯ ВСЕХ КАТЕГОРИЙ) ============
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
         'https://ria.ru/export/rss2/politics/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',
         'https://ria.ru/export/rss2/economy/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Технологии': [
         'https://lenta.ru/rss/news/technology',
         'https://ria.ru/export/rss2/technology/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://habr.com/ru/rss/news/?fl=ru',
     ],
     'Авто': [
         'https://lenta.ru/rss/news/auto',
+        'https://ria.ru/export/rss2/auto/index.xml',
+        'https://motor.ru/rss',
+        'https://www.autonews.ru/export/rss2/news/index.xml',
     ],
     'Киберспорт': [
+        'https://www.cybersport.ru/rss',
+        'https://stopgame.ru/rss/news.xml',
         'https://www.cybersport.ru/rss',
     ],
     'Культура': [
         'https://lenta.ru/rss/news/art',
         'https://ria.ru/export/rss2/culture/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://www.mk.ru/rss/culture/index.xml',
     ],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
+        'https://tass.ru/rss/v2.xml',
         'https://www.championat.com/news/rss/',
+        'https://www.sport-express.ru/rss/',
     ]
 }
 
