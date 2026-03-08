@@ -1044,9 +1044,11 @@ async function loadNewsFromJSON() {
     }
 }
 
-        function updateHeroSection(category, page) {
+    function updateHeroSection(category, page) {
+    // Только для главной страницы
     if (!category && page === 1 && allFilteredNews.length > 0) {
-        // Ищем ПЕРВУЮ новость С КАРТИНКОЙ для главной
+        
+        // Ищем ПЕРВУЮ новость С КАРТИНКОЙ для главного блока
         let mainNews = null;
         let mainNewsIndex = -1;
         
@@ -1060,12 +1062,12 @@ async function loadNewsFromJSON() {
         
         // Если нашли новость с картинкой
         if (mainNews) {
-            // Берем следуюшие 3 новости для сайдбара (исключая главную)
+            // Берем следующие 3 новости (могут быть без картинок)
             const sideNews = allFilteredNews
                 .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
                 .slice(0, 3);
             
-            const mainImageUrl = mainNews.images[0]; // Первая картинка
+            const mainImageUrl = mainNews.images[0];
             
             let heroHtml = `
                 <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
@@ -1080,10 +1082,12 @@ async function loadNewsFromJSON() {
                 </div>
                 <div class="side-stories">`;
             
+            // Боковые новости (могут быть без картинок)
             sideNews.forEach(item => {
                 const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
                 
                 if (sideImageUrl) {
+                    // С картинкой
                     heroHtml += `
                         <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
                             <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
@@ -1095,14 +1099,14 @@ async function loadNewsFromJSON() {
                         </div>
                     `;
                 } else {
+                    // Без картинки - красивый градиент
                     heroHtml += `
-                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-small">ТОЛК</div>
-                            </div>
-                            <div class="side-item-content">
-                                <h3>${item.title.substring(0, 50)}...</h3>
-                                <div class="time">${item.published}</div>
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color);">
+                            <div class="side-item-content" style="padding: 0.5rem 0;">
+                                <div class="card-category" style="margin-bottom: 0.3rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3 style="font-size: 1rem; margin-bottom: 0.3rem;">${item.title.substring(0, 50)}...</h3>
+                                <div class="time" style="font-size: 0.75rem;">${item.published}</div>
                             </div>
                         </div>
                     `;
@@ -1112,19 +1116,16 @@ async function loadNewsFromJSON() {
             heroHtml += '</div>';
             document.getElementById('heroSection').innerHTML = heroHtml;
         } else {
-            // Если вообще нет новостей с картинками, показываем заглушку
+            // Если вообще нет новостей с картинками - показываем заглушку
             document.getElementById('heroSection').innerHTML = `
-                <div class="main-story">
-                    <div class="placeholder-image" style="height: 300px;">
-                        <div class="placeholder-logo">ТОЛК</div>
-                        <div class="placeholder-category">Новости</div>
-                    </div>
-                    <div class="main-story-content">
+                <div class="main-story" style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
+                    <div class="main-story-content" style="padding: 2rem;">
                         <span class="story-category">Скоро</span>
-                        <h2>Свежие новости с картинками появятся в ближайшее время</h2>
-                        <p>Мы собираем для вас самые актуальные новости...</p>
+                        <h2>Свежие новости появятся в ближайшее время</h2>
+                        <p>Мы собираем для вас самые актуальные новости со всего мира...</p>
                     </div>
                 </div>
+                <div class="side-stories"></div>
             `;
         }
     } else {
