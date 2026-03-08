@@ -1,13 +1,9 @@
 {
-  "version": 1772996267.316495,
-  "updated": "2026-03-08T18:57:47.316499",
-  "total": 60,
-  "new": 0,
-  "processed": 60,
-  "page_loaded": 0,
-  "text_found": 0,
-  "already_exists": 60,
-  "with_images": 0,
-  "errors": 0,
-  "ai_processed": 0
+  "version": 1772996784.936212,
+  "updated": "2026-03-08T19:06:24.936216",
+  "total": 88,
+  "new": 28,
+  "processed": 90,
+  "ai_processed": 0,
+  "with_images": 29
 }
