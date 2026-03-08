@@ -195,7 +195,7 @@ def extract_images_from_entry(entry):
 def fetch_and_save():
     print("\n=== НАЧАЛО СБОРА НОВОСТЕЙ ===")
     
-    json_path = 'public/news_data.json'
+json_path = 'public/news_data_v2.json'
     
     # Загружаем существующие ссылки
     existing_links = set()
