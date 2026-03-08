@@ -39,7 +39,6 @@ jobs:
           echo "  messagingSenderId: \"79835817899\"," >> public/config.js
           echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
           echo "};" >> public/config.js
-          cat public/config.js
       
       - name: Запуск импортера
         run: python fetch_news.py
