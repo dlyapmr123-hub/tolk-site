@@ -816,7 +816,7 @@
                     return newsCache;
                 }
                 
-                const response = await fetch('/news_data_v2.json');
+               const response = await fetch('/news_data_v3.json');
                 const news = await response.json();
                 
                 news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));

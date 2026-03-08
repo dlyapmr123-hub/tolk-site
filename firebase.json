@@ -25,11 +25,11 @@
         ]
       },
       {
-         "source": "/news_data.json",
-  "headers": [
+        "source": "/news_data.json",
+        "headers": [
           {
             "key": "Cache-Control",
-      "value": "no-cache, no-store, must-revalidate"
+            "value": "no-cache, no-store, must-revalidate"
           }
         ]
       }
@@ -43,9 +43,6 @@
         "source": "**",
         "destination": "/index.html"
       }
-      
-      
     ]
-    
   }
 }
