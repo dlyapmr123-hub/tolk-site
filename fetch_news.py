@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ФИНАЛЬНАЯ ВЕРСИЯ - DeepSeek API
+ФИНАЛЬНАЯ ВЕРСИЯ - GigaChat API
 """
 
 import feedparser
@@ -14,13 +14,14 @@ import html
 import os
 import sys
 import traceback
+import uuid
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
 import requests
 from bs4 import BeautifulSoup
 
-# Конфигурация с DeepSeek
+# Конфигурация с GigaChat
 CONFIG = {
     'TIMEOUT': 15,
     'MAX_ARTICLES_PER_FEED': 30,
@@ -30,15 +31,19 @@ CONFIG = {
     'MAX_NEWS_TOTAL': 500,
     'USE_AI': True,
     
-    # DeepSeek API
-    'AI_MODEL': 'deepseek-chat',
-    'AI_API_URL': 'https://api.deepseek.com/v1/chat/completions',
-    'AI_API_KEY': 'sk-666d46f5ff6549bc99099fdad779b7a2',
+    # GigaChat API
+    'AI_MODEL': 'GigaChat',
+    'AI_API_URL': 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
+    'AI_AUTH_URL': 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth',
+    'AI_CLIENT_SECRET': 'MDE5Y2NlZGEtMDFiNy03MjMzLTkwZDEtYmMyZTU5MjVjN2NkOjE4YzZkNzEwLWNiOTEtNDNlNi04OGQ1LWI1Yzc4Y2EzOGQ2MA==',
+    
+    # Отключаем проверку SSL для работы в России
+    'AI_VERIFY_SSL': False,
     
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# ТОЛЬКО ПРОВЕРЕННЫЕ ИСТОЧНИКИ
+# RSS источники
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
@@ -72,13 +77,16 @@ RSS_FEEDS = {
 }
 
 class NewsCollector:
-    """Сборщик новостей с DeepSeek"""
+    """Сборщик новостей с GigaChat"""
     
     def __init__(self):
         self.existing_links = set()
         self.all_news = []
         self.new_count = 0
         self.total_processed = 0
+        self.access_token = None
+        self.token_expires = 0
+        
         self.stats = {
             'page_loaded': 0,
             'text_found': 0,
@@ -92,9 +100,7 @@ class NewsCollector:
         
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
     
     def log(self, message: str, level: str = "INFO"):
@@ -106,154 +112,221 @@ class NewsCollector:
         }.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
     
-    def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
-        """Загрузка страницы и извлечение текста"""
+    def get_gigachat_token(self) -> Optional[str]:
+        """Получение токена доступа к GigaChat"""
         try:
-            self.log(f"Загрузка: {url[:60]}...", "LOAD")
+            # Если токен еще действителен, возвращаем его
+            if self.access_token and time.time() < self.token_expires:
+                return self.access_token
             
-            response = self.session.get(url, timeout=CONFIG['TIMEOUT'])
+            self.log("Получение токена GigaChat...", "AI")
             
-            if response.status_code != 200:
-                return None, []
+            headers = {
+                'Authorization': f'Basic {CONFIG["AI_CLIENT_SECRET"]}',
+                'RqUID': str(uuid.uuid4()),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
             
-            if len(response.text) < 1000:
-                return None, []
+            data = {'scope': 'GIGACHAT_API_PERS'}  # Для физических лиц
             
-            self.stats['page_loaded'] += 1
+            response = requests.post(
+                CONFIG['AI_AUTH_URL'],
+                headers=headers,
+                data=data,
+                timeout=10,
+                verify=CONFIG['AI_VERIFY_SSL']
+            )
             
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Удаляем мусор
-            for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
-                tag.decompose()
-            
-            # Ищем картинки
-            images = []
-            for img in soup.find_all('img'):
-                src = img.get('src') or img.get('data-src')
-                if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
-                    if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer)', src.lower()):
-                        if src.startswith('//'):
-                            src = 'https:' + src
-                        images.append(src)
-            
-            # Ищем текст
-            text_parts = []
-            
-            # Сначала ищем article
-            article = soup.find('article')
-            if article:
-                paragraphs = article.find_all('p')
-                for p in paragraphs[:15]:
-                    text = p.get_text(strip=True)
-                    if len(text) > 40:
-                        text_parts.append(text)
-            
-            # Если не нашли, берем все параграфы из main
-            if not text_parts:
-                main = soup.find('main')
-                if main:
-                    paragraphs = main.find_all('p')
-                    for p in paragraphs[:15]:
-                        text = p.get_text(strip=True)
-                        if len(text) > 40:
-                            text_parts.append(text)
-            
-            # Если все еще нет, берем любые параграфы
-            if not text_parts:
-                paragraphs = soup.find_all('p')
-                for p in paragraphs[:20]:
-                    text = p.get_text(strip=True)
-                    if len(text) > 50:
-                        text_parts.append(text)
-            
-            if text_parts:
-                full_text = ' '.join(text_parts)
+            if response.status_code == 200:
+                result = response.json()
+                self.access_token = result['access_token']
+                self.token_expires = time.time() + result['expires_in'] - 60  # Запас 1 минута
+                self.log("✅ Токен получен", "AI")
+                return self.access_token
+            else:
+                self.log(f"❌ Ошибка получения токена: {response.status_code}", "ERROR")
+                return None
                 
-                # Минимальная очистка
-                full_text = re.sub(r'\s+', ' ', full_text).strip()
-                full_text = re.sub(r'Читайте также:.*$', '', full_text, flags=re.IGNORECASE | re.MULTILINE)
-                full_text = re.sub(r'Фото:.*$', '', full_text, flags=re.IGNORECASE | re.MULTILINE)
-                full_text = re.sub(r'Видео:.*$', '', full_text, flags=re.IGNORECASE | re.MULTILINE)
-                
-                # Убираем дубликаты картинок
-                unique_images = []
-                seen = set()
-                for img in images:
-                    if img not in seen:
-                        seen.add(img)
-                        unique_images.append(img)
-                
-                if unique_images:
-                    self.stats['with_images'] += 1
-                
-                self.log(f"Текст: {len(full_text)} символов, Картинок: {len(unique_images)}", "TEXT")
-                self.stats['text_found'] += 1
-                
-                return full_text, unique_images[:CONFIG['MAX_IMAGES']]
-            
-            return None, []
-            
         except Exception as e:
-            self.stats['errors'] += 1
+            self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
+            return None
+    
+    def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
+    """Загрузка страницы и извлечение текста"""
+    try:
+        self.log(f"Загрузка: {url[:60]}...", "LOAD")
+        
+        response = self.session.get(url, timeout=CONFIG['TIMEOUT'])
+        
+        if response.status_code != 200:
             return None, []
+        
+        if len(response.text) < 1000:
+            return None, []
+        
+        self.stats['page_loaded'] += 1
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Удаляем мусор
+        for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+            tag.decompose()
+        
+        # ===== ИСПРАВЛЕННЫЙ ПОИСК КАРТИНОК =====
+        images = []
+        
+        # 1. Для Ленты: ищем class="picture__image" (основные картинки статей)
+        lenta_images = soup.find_all('img', class_='picture__image')
+        for img in lenta_images:
+            src = img.get('src')
+            if src:
+                if src.startswith('//'):
+                    src = 'https:' + src
+                images.append(src)
+                self.log(f"Найдена картинка Lenta: {src[:50]}...", "IMAGE")
+        
+        # 2. Для РИА: ищем class="photoview__open" или media-content
+        ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
+        for img in ria_images:
+            src = img.get('src')
+            if src:
+                if src.startswith('//'):
+                    src = 'https:' + src
+                images.append(src)
+        
+        # 3. Для всех сайтов: ищем большие картинки (не аватарки)
+        all_images = soup.find_all('img')
+        for img in all_images:
+            src = img.get('src') or img.get('data-src')
+            if not src:
+                continue
+            
+            # Пропускаем аватарки авторов (классы с author/avatar/profile)
+            img_class = ' '.join(img.get('class', []))
+            if re.search(r'(author|avatar|profile|userpic|topic-authors)', img_class, re.I):
+                continue
+            
+            # Проверяем расширение и размер
+            if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                # Проверяем, что это не иконка
+                if not re.search(r'(icon|logo|favicon|pixel|spacer|button)', src.lower()):
+                    if src.startswith('//'):
+                        src = 'https:' + src
+                    images.append(src)
+        
+        # Убираем дубликаты (оставляем только уникальные URL)
+        unique_images = []
+        seen = set()
+        for img in images:
+            if img not in seen:
+                seen.add(img)
+                unique_images.append(img)
+        
+        if unique_images:
+            self.stats['with_images'] += len(unique_images)
+            self.log(f"Найдено уникальных картинок: {len(unique_images)}", "IMAGE")
+        # ===== КОНЕЦ ИСПРАВЛЕНИЯ =====
+        
+        # Ищем текст (оставляем как есть)
+        text_parts = []
+        
+        # Сначала ищем article
+        article = soup.find('article')
+        if article:
+            paragraphs = article.find_all('p')
+            for p in paragraphs[:15]:
+                text = p.get_text(strip=True)
+                if len(text) > 40:
+                    text_parts.append(text)
+        
+        # Если не нашли, берем все параграфы
+        if not text_parts:
+            paragraphs = soup.find_all('p')
+            for p in paragraphs[:20]:
+                text = p.get_text(strip=True)
+                if len(text) > 50:
+                    text_parts.append(text)
+        
+        if text_parts:
+            full_text = ' '.join(text_parts)
+            full_text = re.sub(r'\s+', ' ', full_text).strip()
+            
+            self.log(f"Текст: {len(full_text)} символов", "TEXT")
+            self.stats['text_found'] += 1
+            
+            return full_text, unique_images[:CONFIG['MAX_IMAGES']]
+        
+        return None, []
+        
+    except Exception as e:
+        self.stats['errors'] += 1
+        return None, []
     
     def ai_rewrite(self, text: str, title: str, category: str) -> str:
-        """DeepSeek переписывание"""
+        """GigaChat переписывание"""
         if not CONFIG['USE_AI'] or len(text) < 100:
             return text
         
         try:
-            self.log("DeepSeek обрабатывает...", "AI")
+            # Получаем токен
+            token = self.get_gigachat_token()
+            if not token:
+                return text
+            
+            self.log("GigaChat обрабатывает...", "AI")
             
             prompt = f"""Перепиши эту новость своими словами, сохранив все факты.
 Напиши связный текст из 4-5 предложений.
-Убери упоминания других сайтов (РИА, ТАСС, Лента, Интерфакс и т.д.).
+Убери упоминания других сайтов (РИА, ТАСС, Лента и т.д.).
 
 Заголовок: {title}
 Категория: {category}
 
-Текст новости:
+Текст:
 {text[:1500]}
 
 Переписанный текст (только текст, без пояснений):"""
             
             headers = {
-                "Authorization": f"Bearer {CONFIG['AI_API_KEY']}",
+                "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json"
             }
             
             data = {
                 "model": CONFIG['AI_MODEL'],
                 "messages": [
-                    {"role": "system", "content": "Ты профессиональный журналист. Твоя задача - переписывать новости уникально, сохраняя все факты и удаляя упоминания других СМИ."},
                     {"role": "user", "content": prompt}
                 ],
-                "temperature": 0.8,
-                "max_tokens": 800
+                "temperature": 0.7,
+                "max_tokens": 600
             }
             
-            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=30)
+            response = requests.post(
+                CONFIG['AI_API_URL'],
+                headers=headers,
+                json=data,
+                timeout=30,
+                verify=CONFIG['AI_VERIFY_SSL']
+            )
             
             if response.status_code == 200:
                 result = response.json()
                 rewritten = result["choices"][0]["message"]["content"]
                 rewritten = re.sub(r'\s+', ' ', rewritten).strip()
                 self.stats['ai_processed'] += 1
-                self.log(f"✅ DeepSeek готов: {len(rewritten)} символов", "AI")
+                self.log(f"✅ GigaChat готов: {len(rewritten)} символов", "AI")
                 return rewritten
             else:
-                self.log(f"⚠️ Ошибка DeepSeek: {response.status_code}", "WARNING")
-                self.log(f"Ответ: {response.text[:200]}", "WARNING")
+                self.log(f"⚠️ Ошибка GigaChat: {response.status_code}", "WARNING")
                 return text
                 
         except Exception as e:
-            self.log(f"⚠️ Ошибка DeepSeek: {e}", "WARNING")
+            self.log(f"⚠️ Ошибка GigaChat: {e}", "WARNING")
             return text
     
     def run(self):
         print("\n" + "="*70)
-        print("🚀 СБОРЩИК НОВОСТЕЙ (DeepSeek)")
+        print("🚀 СБОРЩИК НОВОСТЕЙ (GigaChat)")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
@@ -300,7 +373,7 @@ class NewsCollector:
                             print(f"    ⚠️ Нет текста")
                             continue
                         
-                        # Применяем DeepSeek
+                        # Применяем GigaChat
                         if CONFIG['USE_AI'] and len(full_text) > 100:
                             full_text = self.ai_rewrite(full_text, entry.title, category)
                         
@@ -371,7 +444,7 @@ class NewsCollector:
         print(f"   Всего новостей: {len(self.all_news)}")
         print(f"   Новых добавлено: {self.new_count}")
         print(f"   Всего обработано: {self.total_processed}")
-        print(f"   Обработано DeepSeek: {self.stats['ai_processed']}")
+        print(f"   Обработано GigaChat: {self.stats['ai_processed']}")
         print(f"   С картинками: {self.stats['with_images']}")
         print(f"   Ошибок: {self.stats['errors']}")
         print("="*70)
