@@ -673,6 +673,46 @@
                 font-size: 1.2rem;
             }
         }
+        /* Стили для карточек без картинок */
+.news-card.no-image {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
+    border: 2px solid var(--border-color);
+}
+
+.news-card.no-image .news-content {
+    padding: 1.5rem;
+}
+
+.news-card.no-image .card-category {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.news-card.no-image h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.news-card.no-image .card-meta {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.news-card.no-image::before {
+    content: "📰";
+    font-size: 2rem;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    opacity: 0.3;
+}
+
+/* Темная тема для карточек без картинок */
+body.dark-mode .news-card.no-image {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+}
     </style>
 </head>
 <body>
@@ -939,72 +979,70 @@ async function loadNewsFromJSON() {
             }
         }
 
-        // Функция быстрого отображения
         function displayNewsFast(paginatedNews, category, page, totalPages) {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const newsGrid = document.getElementById('newsGrid');
-            const sectionTitle = document.getElementById('sectionTitle');
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            
-            if (allFilteredNews.length === 0) {
-                loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
-                return;
-            }
-            
-            loadingIndicator.style.display = 'none';
-            newsGrid.style.display = 'grid';
-            sectionTitle.textContent = category || 'Последние новости';
-            
-            let gridHtml = '';
-            paginatedNews.forEach(item => {
-                const imageUrl = getNewsImage(item);
-                
-                if (imageUrl === 'placeholder') {
-                    gridHtml += `
-                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-logo">ТОЛК</div>
-                                <div class="placeholder-category">${item.category}</div>
-                                <div class="placeholder-message"></div>
-                            </div>
-                            <div class="news-content">
-                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
-                                <div class="card-meta">
-                                    <span>${item.published.substring(0, 16)}</span>
-                                    <span>→</span>
-                                </div>
-                            </div>
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const newsGrid = document.getElementById('newsGrid');
+    const sectionTitle = document.getElementById('sectionTitle');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    
+    if (allFilteredNews.length === 0) {
+        loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
+        return;
+    }
+    
+    loadingIndicator.style.display = 'none';
+    newsGrid.style.display = 'grid';
+    sectionTitle.textContent = category || 'Последние новости';
+    
+    let gridHtml = '';
+    paginatedNews.forEach(item => {
+        const hasImage = item.images && item.images.length > 0;
+        const imageUrl = hasImage ? item.images[0] : null;
+        
+        if (hasImage) {
+            // Карточка с картинкой
+            gridHtml += `
+                <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
+                    <img src="${imageUrl}" alt="${item.category}" loading="lazy"
+                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
+                    <div class="news-content">
+                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                        <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
+                        <div class="card-meta">
+                            <span>${item.published.substring(0, 16)}</span>
+                            <span>→</span>
                         </div>
-                    `;
-                } else {
-                    gridHtml += `
-                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
-                            <div class="news-content">
-                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
-                                <div class="card-meta">
-                                    <span>${item.published.substring(0, 16)}</span>
-                                    <span>→</span>
-                                </div>
-                            </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Карточка БЕЗ картинки (стильный дизайн)
+            gridHtml += `
+                <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
+                    <div class="news-content">
+                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                        <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
+                        <p style="color: var(--secondary-text); margin-bottom: 1rem;">${item.description}</p>
+                        <div class="card-meta">
+                            <span>${item.published.substring(0, 16)}</span>
+                            <span>Читать →</span>
                         </div>
-                    `;
-                }
-            });
-            
-            newsGrid.innerHTML = gridHtml;
-            updateHeroSection(category, page);
-            
-            if (page < totalPages) {
-                loadMoreBtn.style.display = 'inline-block';
-                loadMoreBtn.disabled = false;
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
+                    </div>
+                </div>
+            `;
         }
+    });
+    
+    newsGrid.innerHTML = gridHtml;
+    updateHeroSection(category, page);
+    
+    if (page < totalPages) {
+        loadMoreBtn.style.display = 'inline-block';
+        loadMoreBtn.disabled = false;
+    } else {
+        loadMoreBtn.style.display = 'none';
+    }
+}
 
         function updateHeroSection(category, page) {
     if (!category && page === 1 && allFilteredNews.length > 0) {
