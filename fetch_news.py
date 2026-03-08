@@ -115,7 +115,6 @@ class NewsCollector:
     def get_gigachat_token(self) -> Optional[str]:
         """Получение токена доступа к GigaChat"""
         try:
-            # Если токен еще действителен, возвращаем его
             if self.access_token and time.time() < self.token_expires:
                 return self.access_token
             
@@ -127,7 +126,7 @@ class NewsCollector:
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
             
-            data = {'scope': 'GIGACHAT_API_PERS'}  # Для физических лиц
+            data = {'scope': 'GIGACHAT_API_PERS'}
             
             response = requests.post(
                 CONFIG['AI_AUTH_URL'],
@@ -140,7 +139,7 @@ class NewsCollector:
             if response.status_code == 200:
                 result = response.json()
                 self.access_token = result['access_token']
-                self.token_expires = time.time() + result['expires_in'] - 60  # Запас 1 минута
+                self.token_expires = time.time() + result['expires_in'] - 60
                 self.log("✅ Токен получен", "AI")
                 return self.access_token
             else:
@@ -151,115 +150,110 @@ class NewsCollector:
             self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
             return None
     
-def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
-    """Загрузка страницы и извлечение текста"""
-    try:
-        self.log(f"Загрузка: {url[:60]}...", "LOAD")
-        
-        response = self.session.get(url, timeout=CONFIG['TIMEOUT'])
-        
-        if response.status_code != 200:
-            return None, []
-        
-        if len(response.text) < 1000:
-            return None, []
-        
-        self.stats['page_loaded'] += 1
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Удаляем мусор
-        for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
-            tag.decompose()
-        
-        # ===== ПОИСК КАРТИНОК =====
-        images = []
-        
-        # 1. Для Ленты: ищем class="picture__image" (основные картинки статей)
-        lenta_images = soup.find_all('img', class_='picture__image')
-        for img in lenta_images:
-            src = img.get('src')
-            if src:
-                if src.startswith('//'):
-                    src = 'https:' + src
-                images.append(src)
-                self.log(f"Найдена картинка Lenta: {src[:50]}...", "IMAGE")
-        
-        # 2. Для РИА: ищем class="photoview__open" или media-content
-        ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
-        for img in ria_images:
-            src = img.get('src')
-            if src:
-                if src.startswith('//'):
-                    src = 'https:' + src
-                images.append(src)
-        
-        # 3. Для всех сайтов: ищем большие картинки (не аватарки)
-        all_images = soup.find_all('img')
-        for img in all_images:
-            src = img.get('src') or img.get('data-src')
-            if not src:
-                continue
+    def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
+        """Загрузка страницы и извлечение текста"""
+        try:
+            self.log(f"Загрузка: {url[:60]}...", "LOAD")
             
-            # Пропускаем аватарки авторов
-            img_class = ' '.join(img.get('class', []))
-            if re.search(r'(author|avatar|profile|userpic|topic-authors)', img_class, re.I):
-                continue
+            response = self.session.get(url, timeout=CONFIG['TIMEOUT'])
             
-            # Проверяем расширение
-            if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
-                if not re.search(r'(icon|logo|favicon|pixel|spacer|button)', src.lower()):
+            if response.status_code != 200:
+                return None, []
+            
+            if len(response.text) < 1000:
+                return None, []
+            
+            self.stats['page_loaded'] += 1
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Удаляем мусор
+            for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                tag.decompose()
+            
+            # ===== ПОИСК КАРТИНОК =====
+            images = []
+            
+            # 1. Для Ленты: ищем class="picture__image"
+            lenta_images = soup.find_all('img', class_='picture__image')
+            for img in lenta_images:
+                src = img.get('src')
+                if src:
                     if src.startswith('//'):
                         src = 'https:' + src
                     images.append(src)
-        
-        # Убираем дубликаты
-        unique_images = []
-        seen = set()
-        for img in images:
-            if img not in seen:
-                seen.add(img)
-                unique_images.append(img)
-        
-        if unique_images:
-            self.stats['with_images'] += len(unique_images)
-            self.log(f"Найдено уникальных картинок: {len(unique_images)}", "IMAGE")
-        # ===== КОНЕЦ ПОИСКА КАРТИНОК =====
-        
-        # Ищем текст
-        text_parts = []
-        
-        # Сначала ищем article
-        article = soup.find('article')
-        if article:
-            paragraphs = article.find_all('p')
-            for p in paragraphs[:15]:
-                text = p.get_text(strip=True)
-                if len(text) > 40:
-                    text_parts.append(text)
-        
-        # Если не нашли, берем все параграфы
-        if not text_parts:
-            paragraphs = soup.find_all('p')
-            for p in paragraphs[:20]:
-                text = p.get_text(strip=True)
-                if len(text) > 50:
-                    text_parts.append(text)
-        
-        if text_parts:
-            full_text = ' '.join(text_parts)
-            full_text = re.sub(r'\s+', ' ', full_text).strip()
+                    self.log(f"Найдена картинка Lenta: {src[:50]}...", "IMAGE")
             
-            self.log(f"Текст: {len(full_text)} символов", "TEXT")
-            self.stats['text_found'] += 1
+            # 2. Для РИА: ищем class="photoview__open"
+            ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
+            for img in ria_images:
+                src = img.get('src')
+                if src:
+                    if src.startswith('//'):
+                        src = 'https:' + src
+                    images.append(src)
             
-            return full_text, unique_images[:CONFIG['MAX_IMAGES']]
-        
-        return None, []
-        
-    except Exception as e:
-        self.stats['errors'] += 1
-        return None, []
+            # 3. Для всех сайтов: ищем большие картинки (не аватарки)
+            all_images = soup.find_all('img')
+            for img in all_images:
+                src = img.get('src') or img.get('data-src')
+                if not src:
+                    continue
+                
+                img_class = ' '.join(img.get('class', []))
+                if re.search(r'(author|avatar|profile|userpic|topic-authors)', img_class, re.I):
+                    continue
+                
+                if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                    if not re.search(r'(icon|logo|favicon|pixel|spacer|button)', src.lower()):
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        images.append(src)
+            
+            # Убираем дубликаты
+            unique_images = []
+            seen = set()
+            for img in images:
+                if img not in seen:
+                    seen.add(img)
+                    unique_images.append(img)
+            
+            if unique_images:
+                self.stats['with_images'] += len(unique_images)
+                self.log(f"Найдено уникальных картинок: {len(unique_images)}", "IMAGE")
+            
+            # Ищем текст
+            text_parts = []
+            
+            article = soup.find('article')
+            if article:
+                paragraphs = article.find_all('p')
+                for p in paragraphs[:15]:
+                    text = p.get_text(strip=True)
+                    if len(text) > 40:
+                        text_parts.append(text)
+            
+            if not text_parts:
+                paragraphs = soup.find_all('p')
+                for p in paragraphs[:20]:
+                    text = p.get_text(strip=True)
+                    if len(text) > 50:
+                        text_parts.append(text)
+            
+            if text_parts:
+                full_text = ' '.join(text_parts)
+                full_text = re.sub(r'\s+', ' ', full_text).strip()
+                
+                self.log(f"Текст: {len(full_text)} символов", "TEXT")
+                self.stats['text_found'] += 1
+                
+                return full_text, unique_images[:CONFIG['MAX_IMAGES']]
+            
+            return None, []
+            
+        except Exception as e:
+            self.stats['errors'] += 1
+            return None, []
     
     def ai_rewrite(self, text: str, title: str, category: str) -> str:
         """GigaChat переписывание"""
@@ -267,7 +261,6 @@ def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
             return text
         
         try:
-            # Получаем токен
             token = self.get_gigachat_token()
             if not token:
                 return text
@@ -324,6 +317,7 @@ def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
             return text
     
     def run(self):
+        """Основной метод запуска"""
         print("\n" + "="*70)
         print("🚀 СБОРЩИК НОВОСТЕЙ (GigaChat)")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
