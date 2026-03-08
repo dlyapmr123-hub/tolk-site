@@ -113,52 +113,48 @@ class NewsCollector:
         print(f"{emoji} [{timestamp}] {message}")
     
     def get_gigachat_token(self) -> Optional[str]:
-    """Получение токена доступа к GigaChat"""
-    try:
-        # Если токен еще действителен, возвращаем его
-        if self.access_token and time.time() < self.token_expires:
-            return self.access_token
-        
-        self.log("Получение токена GigaChat...", "AI")
-        
-        headers = {
-            'Authorization': f'Basic {CONFIG["AI_CLIENT_SECRET"]}',
-            'RqUID': str(uuid.uuid4()),
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-        
-        data = {'scope': 'GIGACHAT_API_PERS'}  # Для физических лиц
-        
-        response = requests.post(
-            CONFIG['AI_AUTH_URL'],
-            headers=headers,
-            data=data,
-            timeout=10,
-            verify=CONFIG['AI_VERIFY_SSL']
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            self.access_token = result['access_token']
+        """Получение токена доступа к GigaChat"""
+        try:
+            if self.access_token and time.time() < self.token_expires:
+                return self.access_token
             
-            # Проверяем наличие expires_in, если нет - ставим 30 минут по умолчанию
-            if 'expires_in' in result:
-                self.token_expires = time.time() + result['expires_in'] - 60
+            self.log("Получение токена GigaChat...", "AI")
+            
+            headers = {
+                'Authorization': f'Basic {CONFIG["AI_CLIENT_SECRET"]}',
+                'RqUID': str(uuid.uuid4()),
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            
+            data = {'scope': 'GIGACHAT_API_PERS'}
+            
+            response = requests.post(
+                CONFIG['AI_AUTH_URL'],
+                headers=headers,
+                data=data,
+                timeout=10,
+                verify=CONFIG['AI_VERIFY_SSL']
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.access_token = result['access_token']
+                
+                if 'expires_in' in result:
+                    self.token_expires = time.time() + result['expires_in'] - 60
+                else:
+                    self.token_expires = time.time() + 1800 - 60
+                    self.log("⚠️ expires_in не найден, использую 30 мин", "WARNING")
+                
+                self.log("✅ Токен получен", "AI")
+                return self.access_token
             else:
-                # Токен GigaChat обычно живет 30 минут
-                self.token_expires = time.time() + 1800 - 60  # 30 минут - 1 минута запас
-                self.log("⚠️ expires_in не найден, использую значение по умолчанию (30 мин)", "WARNING")
-            
-            self.log(f"✅ Токен получен, действует до {datetime.fromtimestamp(self.token_expires).strftime('%H:%M:%S')}", "AI")
-            return self.access_token
-        else:
-            self.log(f"❌ Ошибка получения токена: {response.status_code}", "ERROR")
-            self.log(f"Ответ: {response.text[:200]}", "ERROR")
+                self.log(f"❌ Ошибка получения токена: {response.status_code}", "ERROR")
+                return None
+                
+        except Exception as e:
+            self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
             return None
-            
-    except Exception as e:
-        self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
-        return None
     
     def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
         """Загрузка страницы и извлечение текста"""
@@ -177,14 +173,13 @@ class NewsCollector:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Удаляем мусор
             for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
                 tag.decompose()
             
-            # ===== ПОИСК КАРТИНОК =====
+            # Поиск картинок
             images = []
             
-            # 1. Для Ленты: ищем class="picture__image"
+            # Для Ленты
             lenta_images = soup.find_all('img', class_='picture__image')
             for img in lenta_images:
                 src = img.get('src')
@@ -192,9 +187,9 @@ class NewsCollector:
                     if src.startswith('//'):
                         src = 'https:' + src
                     images.append(src)
-                    self.log(f"Найдена картинка Lenta: {src[:50]}...", "IMAGE")
+                    self.log(f"Найдена картинка Lenta", "IMAGE")
             
-            # 2. Для РИА: ищем class="photoview__open"
+            # Для РИА
             ria_images = soup.find_all('img', class_=re.compile(r'photoview|media', re.I))
             for img in ria_images:
                 src = img.get('src')
@@ -203,7 +198,7 @@ class NewsCollector:
                         src = 'https:' + src
                     images.append(src)
             
-            # 3. Для всех сайтов: ищем большие картинки (не аватарки)
+            # Для всех сайтов
             all_images = soup.find_all('img')
             for img in all_images:
                 src = img.get('src') or img.get('data-src')
@@ -230,9 +225,9 @@ class NewsCollector:
             
             if unique_images:
                 self.stats['with_images'] += len(unique_images)
-                self.log(f"Найдено уникальных картинок: {len(unique_images)}", "IMAGE")
+                self.log(f"Найдено картинок: {len(unique_images)}", "IMAGE")
             
-            # Ищем текст
+            # Поиск текста
             text_parts = []
             
             article = soup.find('article')
@@ -336,7 +331,6 @@ class NewsCollector:
         os.makedirs('public', exist_ok=True)
         json_path = 'public/news_data_v3.json'
         
-        # Загружаем старые новости
         if os.path.exists(json_path):
             try:
                 with open(json_path, 'r', encoding='utf-8') as f:
@@ -348,7 +342,6 @@ class NewsCollector:
             except:
                 self.all_news = []
         
-        # Обрабатываем источники
         for category, feeds in RSS_FEEDS.items():
             print(f"\n📊 {category}")
             
@@ -369,18 +362,15 @@ class NewsCollector:
                         
                         print(f"\n  [{idx}] {entry.title[:60]}...")
                         
-                        # Загружаем страницу
                         full_text, images = self.extract_text_from_page(entry.link)
                         
                         if not full_text:
                             print(f"    ⚠️ Нет текста")
                             continue
                         
-                        # Применяем GigaChat
                         if CONFIG['USE_AI'] and len(full_text) > 100:
                             full_text = self.ai_rewrite(full_text, entry.title, category)
                         
-                        # Форматируем в HTML
                         sentences = re.split(r'(?<=[.!?])\s+', full_text)
                         content_html = ''
                         for s in sentences[:6]:
@@ -393,7 +383,6 @@ class NewsCollector:
                         if not content_html:
                             content_html = f'<p>{full_text[:300]}</p>'
                         
-                        # Создаем запись
                         news_item = {
                             'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
                             'title': entry.title.strip()[:250],
@@ -419,7 +408,6 @@ class NewsCollector:
                     self.stats['errors'] += 1
                     continue
         
-        # Сохраняем
         self.all_news.sort(key=lambda x: x['timestamp'], reverse=True)
         
         if len(self.all_news) > CONFIG['MAX_NEWS_TOTAL']:
@@ -428,7 +416,6 @@ class NewsCollector:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(self.all_news, f, ensure_ascii=False, indent=2)
         
-        # Сохраняем версию
         version_data = {
             'version': datetime.now().timestamp(),
             'updated': datetime.now().isoformat(),
