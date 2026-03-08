@@ -1,12 +1,12 @@
 {
-  "version": 1772989434.674818,
-  "updated": "2026-03-08T17:03:54.674821",
+  "version": 1772990138.000372,
+  "updated": "2026-03-08T17:15:38.000376",
   "total": 174,
-  "new": 15,
+  "new": 0,
   "processed": 40,
-  "page_loaded": 15,
-  "text_found": 15,
-  "already_exists": 25,
-  "with_images": 15,
+  "page_loaded": 0,
+  "text_found": 0,
+  "already_exists": 40,
+  "with_images": 0,
   "errors": 0
 }
