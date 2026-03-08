@@ -38,7 +38,7 @@ except ImportError:
 
 # ============ НАСТРОЙКИ ============
 TIMEOUT = 10
-MAX_ARTICLES_PER_FEED = 10  # УВЕЛИЧИЛИ с 3 до 10 - больше просмотров
+MAX_ARTICLES_PER_FEED = 30  # УВЕЛИЧИЛИ ДО 30!
 REQUEST_DELAY = 1
 MAX_IMAGES = 3
 
@@ -131,11 +131,10 @@ def extract_text_fast(html_content):
     try:
         # Ищем картинки
         img_matches = re.findall(r'<img[^>]+src="([^">]+)"', html_content)
-        for url in img_matches[:MAX_IMAGES * 3]:  # Увеличили поиск картинок
+        for url in img_matches[:MAX_IMAGES * 3]:
             if url.startswith('//'):
                 url = 'https:' + url
             elif url.startswith('/'):
-                # Пытаемся построить полный URL
                 continue
             
             # Проверяем, что это реальная картинка
@@ -147,7 +146,7 @@ def extract_text_fast(html_content):
         p_matches = re.findall(r'<p[^>]*>(.*?)</p>', html_content, re.DOTALL)
         text_parts = []
         
-        for p in p_matches[:10]:  # Увеличили до 10 параграфов
+        for p in p_matches[:10]:
             p_text = re.sub(r'<[^>]+>', ' ', p)
             p_text = html.unescape(p_text)
             p_text = re.sub(r'\s+', ' ', p_text).strip()
@@ -306,14 +305,15 @@ def fetch_and_save():
                 print(f"  📊 Найдено записей: {entries_count}")
                 print(f"  🔍 Просматриваем первые {MAX_ARTICLES_PER_FEED} из {entries_count}")
                 
-                for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
+                # Проходим по первым 30 записям
+                for i, entry in enumerate(feed.entries[:MAX_ARTICLES_PER_FEED], 1):
                     total_processed += 1
                     
                     if entry.link in existing_links:
                         skipped_already_exists += 1
                         continue
                     
-                    print(f"\n  🔍 {entry.title[:60]}...")
+                    print(f"\n  🔍 [{i}/{MAX_ARTICLES_PER_FEED}] {entry.title[:60]}...")
                     
                     # Загружаем текст и картинки
                     full_text, images = fetch_article_data(entry.link)
