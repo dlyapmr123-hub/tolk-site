@@ -1,11 +1,12 @@
 {
-  "version": 1772988608.307744,
-  "updated": "2026-03-08T16:50:08.307747",
-  "total": 62,
-  "new": 2,
-  "processed": 235,
-  "no_text": 143,
-  "too_short": 0,
-  "already_exists": 90,
-  "with_images": 0
+  "version": 1772989434.674818,
+  "updated": "2026-03-08T17:03:54.674821",
+  "total": 174,
+  "new": 15,
+  "processed": 40,
+  "page_loaded": 15,
+  "text_found": 15,
+  "already_exists": 25,
+  "with_images": 15,
+  "errors": 0
 }
