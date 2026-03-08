@@ -11,62 +11,56 @@ import requests
 import os
 from urllib.parse import urljoin, urlparse
 import html
-import random
 import sys
 import traceback
 
-# Принудительно включаем вывод в реальном времени
+# Принудительно включаем вывод
 try:
     sys.stdout.reconfigure(line_buffering=True)
 except:
-    pass  # Для старых версий Python
+    pass
 
 print("=" * 60)
-print("=== ЗАПУСК СКРИПТА С ПОЛНЫМ ТЕКСТОМ И ИИ ===")
-print(f"Python version: {sys.version}")
+print("=== ЗАПУСК СКРИПТА СБОРА НОВОСТЕЙ ===")
 print(f"Время: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print(f"Рабочая директория: {os.getcwd()}")
 print("=" * 60)
 
 # Пытаемся импортировать BeautifulSoup
 try:
     from bs4 import BeautifulSoup
     print("✅ BeautifulSoup импортирован успешно")
-except ImportError as e:
-    print(f"❌ Ошибка импорта BeautifulSoup: {e}")
-    print("Пытаемся установить beautifulsoup4 и lxml...")
-    try:
-        import subprocess
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "beautifulsoup4", "lxml"])
-        from bs4 import BeautifulSoup
-        print("✅ BeautifulSoup установлен и импортирован")
-    except Exception as install_error:
-        print(f"❌ Не удалось установить BeautifulSoup: {install_error}")
-        print("Продолжаем без BeautifulSoup (упрощенный режим)")
-        BeautifulSoup = None
+except ImportError:
+    print("❌ BeautifulSoup не найден, устанавливаем...")
+    import subprocess
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "beautifulsoup4", "lxml"])
+    from bs4 import BeautifulSoup
+    print("✅ BeautifulSoup установлен и импортирован")
 
 # ============ НАСТРОЙКИ ============
 TIMEOUT = 15
-MAX_ARTICLES_PER_FEED = 3
+MAX_ARTICLES_PER_FEED = 5
 REQUEST_DELAY = 3
-MAX_IMAGES = 3
+MAX_IMAGES = 5  # Больше картинок
 
 # ============ RSS ИСТОЧНИКИ ============
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
         'https://ria.ru/export/rss2/politics/index.xml',
-        'https://tass.ru/rss/v2.xml'
+        'https://tass.ru/rss/v2.xml',
+        'https://rg.ru/export/rss/index.xml'
     ],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',
         'https://ria.ru/export/rss2/economy/index.xml',
-        'https://www.rbc.ru/rss/'
+        'https://www.rbc.ru/rss/',
+        'https://www.vedomosti.ru/rss/news'
     ],
     'Технологии': [
         'https://lenta.ru/rss/news/technology',
         'https://ria.ru/export/rss2/technology/index.xml',
-        'https://habr.com/ru/rss/news/?fl=ru'
+        'https://habr.com/ru/rss/news/?fl=ru',
+        'https://3dnews.ru/news/rss/'
     ],
     'Авто': [
         'https://lenta.ru/rss/news/auto',
@@ -85,15 +79,23 @@ RSS_FEEDS = {
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
-        'https://www.championat.com/news/rss/'
+        'https://www.championat.com/news/rss/',
+        'https://www.sport-express.ru/rss/'
     ]
 }
 
 # ============ НАСТРОЙКИ ИИ ============
-USE_AI = False  # Отключаем ИИ для начала, пока не настроим ключ
+USE_AI = True
 AI_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 AI_MODEL = "gpt-3.5-turbo"
-AI_API_KEY = "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"  # Оставляем пустым, ИИ будет отключен
+# ВАЖНО: ВСТАВЬТЕ ВАШ КЛЮЧ! Получите на https://openrouter.ai/keys
+AI_API_KEY = "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"  # Ваш ключ
+
+if AI_API_KEY == "sk-or-v1-..." or not AI_API_KEY:
+    print("⚠️ ВНИМАНИЕ: API ключ не настроен! ИИ будет отключен")
+    USE_AI = False
+else:
+    print(f"✅ API ключ загружен, ИИ активен")
 
 print(f"📊 Настройки: TIMEOUT={TIMEOUT}, MAX_ARTICLES={MAX_ARTICLES_PER_FEED}")
 print(f"🤖 ИИ: {'ВКЛЮЧЕН' if USE_AI else 'ВЫКЛЮЧЕН'}")
@@ -113,8 +115,9 @@ def clean_text(text):
     # Удаляем лишние пробелы и переносы
     text = re.sub(r'\s+', ' ', text)
     
-    # Удаляем специфичный мусор с сайтов
-    garbage_patterns = [
+    # СПИСОК МУСОРНЫХ ФРАЗ (ВСЁ ЧТО НУЖНО УДАЛИТЬ)
+    garbage_phrases = [
+        # Навигация по сайту
         r'Главное.*?Мир',
         r'Бывший СССР',
         r'Силовые структуры',
@@ -136,14 +139,37 @@ def clean_text(text):
         r'Мини-игры',
         r'Архив',
         r'Лента добра',
-        r'Хочешь видеть только хорошие новости\?.*?Жми!',
-        r'Вернуться в обычную ленту\?',
+        
+        # Реклама и соцсети
         r'Реклама.*?Реклама',
         r'Подпишись.*?новости',
         r'Соглашение.*?terms',
         r'ООО.*?Видео',
         r'VK.*?vkvideo\.ru',
+        r'Telegram',
+        r'Вконтакте',
+        r'VK',
+        r'YouTube',
+        r'Instagram',
+        r'Twitter',
+        r'Facebook',
         r'12\+',
+        r'18\+',
+        
+        # Спортивный мусор
+        r'Мир Российская Премьер-лига',
+        r'Фонбет Чемпионат КХЛ',
+        r'Олимпиада Ставки',
+        r'Футбол Бокс и ММА',
+        r'Зимние виды Летние виды',
+        r'Хоккей Автоспорт',
+        r'ЗОЖ и фитнес',
+        r'\d+\s*:\s*\d+\s*\d*-й тайм Live',
+        r'\d*-й тур',
+        r'Сегодня \d+:\d+',
+        r'Оренбург|Зенит|Крылья Советов|Динамо Мх|Металлург Мг|Трактор|Лада|Спартак|Рубин|Краснодар|Торпедо|ХК Сочи|ЦСКА|Динамо М',
+        
+        # Общее
         r'Читайте также:.*?(?=\.|$)',
         r'Фото:.*?(?=\.|$)',
         r'Видео:.*?(?=\.|$)',
@@ -151,9 +177,14 @@ def clean_text(text):
         r'Все права защищены',
         r'Источник:.*?(?=\.|$)',
         r'Ссылка:.*?(?=\.|$)',
+        r'Поделиться',
+        r'Скопировать ссылку',
+        r'Комментарии',
+        r'Обсудить',
+        r'Оставить комментарий',
     ]
     
-    for pattern in garbage_patterns:
+    for pattern in garbage_phrases:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE)
     
     # Убираем множественные точки и пробелы
@@ -162,79 +193,103 @@ def clean_text(text):
     
     return text.strip()
 
-def extract_main_text_simple(html_content):
-    """Упрощенное извлечение текста без BeautifulSoup"""
+def extract_main_text(html_content, url):
+    """Извлечение ПОЛНОГО текста статьи с картинками"""
     if not html_content:
-        return None
+        return None, []
     
-    # Удаляем скрипты и стили
-    html_content = re.sub(r'<script.*?>.*?</script>', '', html_content, flags=re.DOTALL)
-    html_content = re.sub(r'<style.*?>.*?</style>', '', html_content, flags=re.DOTALL)
-    
-    # Удаляем все теги
-    text = re.sub(r'<[^>]+>', ' ', html_content)
-    
-    # Очищаем
-    text = clean_text(text)
-    
-    # Ищем предложения
-    sentences = re.split(r'[.!?]+', text)
-    good_sentences = []
-    
-    for s in sentences:
-        s = s.strip()
-        if len(s) > 50 and not re.search(r'(реклама|подпишись|vk|telegram)', s.lower()):
-            good_sentences.append(s)
-        if len(good_sentences) >= 5:
-            break
-    
-    if good_sentences:
-        return '. '.join(good_sentences) + '.'
-    
-    return text[:1000]
-
-def extract_main_text_bs4(html_content, site_url):
-    """Извлечение текста с BeautifulSoup"""
-    if not html_content or not BeautifulSoup:
-        return extract_main_text_simple(html_content)
+    images = []
     
     try:
         soup = BeautifulSoup(html_content, 'html.parser')
         
-        # Удаляем скрипты, стили, навигацию
-        for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+        # ========== ИЩЕМ КАРТИНКИ ==========
+        # Ищем все картинки на странице
+        for img in soup.find_all('img'):
+            img_url = img.get('src') or img.get('data-src') or img.get('data-original')
+            if img_url:
+                if img_url.startswith('//'):
+                    img_url = 'https:' + img_url
+                elif img_url.startswith('/'):
+                    # Относительный путь
+                    parsed_url = urlparse(url)
+                    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                    img_url = base_url + img_url
+                
+                # Проверяем, что это не иконка и не логотип
+                if not re.search(r'(icon|logo|avatar|favicon|pixel|spacer|button|banner|ad|reklama)', img_url.lower()):
+                    if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', img_url.lower()):
+                        images.append(img_url)
+        
+        # ========== Удаляем мусор ==========
+        for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe', 'noscript']):
             tag.decompose()
         
-        # Ищем статью
+        # Удаляем рекламные блоки
+        for class_name in ['ad', 'ads', 'advertisement', 'banner', 'promo', 'subscribe', 'newsletter',
+                          'menu', 'navigation', 'navbar', 'sidebar', 'comments', 'share', 'social',
+                          'tags', 'related', 'popular', 'cookie', 'popup']:
+            for element in soup.find_all(class_=re.compile(class_name, re.I)):
+                element.decompose()
+        
+        # ========== ИЩЕМ СТАТЬЮ ==========
         article = None
-        article = soup.find('article') or soup.find('main') or soup.find('div', class_=re.compile(r'article|post|content|text|story', re.I))
+        article = soup.find('article') or soup.find('main') or soup.find('div', class_=re.compile(r'article|post|content|text|story|news-body', re.I))
         
         if not article:
             article = soup.find('body')
         
         if not article:
-            return extract_main_text_simple(html_content)
+            return None, images
         
-        # Собираем параграфы
+        # ========== СОБИРАЕМ ТЕКСТ ==========
         paragraphs = article.find_all('p')
         text_parts = []
         
-        for p in paragraphs[:10]:  # Первые 10 параграфов
+        for p in paragraphs:
             p_text = p.get_text(strip=True)
-            if len(p_text) > 30 and not re.search(r'(реклама|подпишись)', p_text.lower()):
+            
+            # Фильтруем короткие и мусорные параграфы
+            if len(p_text) < 40:
+                continue
+            
+            # Проверяем на мусор
+            is_garbage = False
+            garbage_check = ['реклама', 'подпишись', 'telegram', 'vk', 'вконтакте', 
+                           'youtube', 'instagram', 'cookie', 'конфиденциальность']
+            
+            for word in garbage_check:
+                if word in p_text.lower():
+                    is_garbage = True
+                    break
+            
+            if not is_garbage:
                 text_parts.append(p_text)
         
         if text_parts:
-            return ' '.join(text_parts)
+            full_text = ' '.join(text_parts)
+            full_text = clean_text(full_text)
+            
+            # Убираем дубликаты картинок
+            unique_images = []
+            seen = set()
+            for img in images:
+                base_url = img.split('?')[0]
+                if base_url not in seen:
+                    seen.add(base_url)
+                    unique_images.append(img)
+            
+            print(f"      📸 Найдено картинок: {len(unique_images)}")
+            return full_text, unique_images[:MAX_IMAGES]
         
-        return extract_main_text_simple(str(article))
+        return None, images[:MAX_IMAGES]
         
     except Exception as e:
-        print(f"    ⚠️ Ошибка BeautifulSoup: {e}")
-        return extract_main_text_simple(html_content)
+        print(f"      ⚠️ Ошибка парсинга: {e}")
+        return None, images[:MAX_IMAGES]
 
-def fetch_article_text(url):
-    """Загружает текст статьи"""
+def fetch_article_data(url):
+    """Загружает статью и картинки"""
     try:
         print(f"    📥 Загрузка: {url[:60]}...")
         
@@ -247,74 +302,86 @@ def fetch_article_text(url):
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
         if response.status_code != 200:
             print(f"    ❌ Ошибка HTTP: {response.status_code}")
-            return None
+            return None, []
         
-        # Извлекаем текст
-        if BeautifulSoup:
-            text = extract_main_text_bs4(response.text, url)
-        else:
-            text = extract_main_text_simple(response.text)
+        text, images = extract_main_text(response.text, url)
         
-        if text and len(text) > 100:
-            print(f"    ✅ Загружено {len(text)} символов")
-            return text
+        if text and len(text) > 200:
+            print(f"    ✅ Текст: {len(text)} символов, Картинки: {len(images)}")
+            return text, images
         else:
-            print(f"    ⚠️ Текст слишком короткий: {len(text) if text else 0}")
-            return None
+            print(f"    ⚠️ Текст слишком короткий")
+            return None, images
         
     except Exception as e:
         print(f"    ❌ Ошибка загрузки: {e}")
-        return None
+        return None, []
 
-def extract_images_from_entry(entry, full_html=None):
-    """Извлечение картинок"""
-    images = []
+def ai_rewrite_text(text, title, category):
+    """Перефразирование текста через ИИ"""
+    if not text or len(text) < 200 or not USE_AI:
+        return text
     
-    # Из RSS
-    if hasattr(entry, 'media_content'):
-        for media in entry.media_content:
-            if media.get('url'):
-                url = media['url']
-                if url.startswith('//'):
-                    url = 'https:' + url
-                images.append(url)
-    
-    # Из summary
-    summary = entry.get('summary', '') or entry.get('description', '')
-    if summary:
-        img_urls = re.findall(r'<img[^>]+src="([^">]+)"', summary)
-        for url in img_urls:
-            if url.startswith('//'):
-                url = 'https:' + url
-            images.append(url)
-    
-    # Убираем дубликаты
-    seen = set()
-    unique = []
-    for img in images:
-        base_url = img.split('?')[0]
-        if base_url not in seen and re.search(r'\.(jpg|jpeg|png|webp)(\?|$)', base_url.lower()):
-            seen.add(base_url)
-            unique.append(img)
-    
-    return unique[:MAX_IMAGES]
+    try:
+        print(f"    🤖 ИИ обрабатывает текст...")
+        
+        prompt = f"""Перепиши эту новость своими словами, сохранив все важные факты и детали.
+Напиши полноценную статью из 3-5 абзацев.
+Убери любую рекламу, ссылки на другие сайты, призывы подписаться.
+Сохрани только суть новости, переформулируй её уникально.
+
+Категория: {category}
+Заголовок: {title}
+
+Текст новости:
+{text}
+
+Твоя переписанная статья (только текст, без пояснений):"""
+
+        headers = {
+            "Authorization": f"Bearer {AI_API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://tolk-1.web.app",
+            "X-Title": "Tolk News"
+        }
+        
+        data = {
+            "model": AI_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.8,
+            "max_tokens": 800
+        }
+        
+        response = requests.post(AI_API_URL, headers=headers, json=data, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            rewritten = result["choices"][0]["message"]["content"]
+            rewritten = clean_text(rewritten)
+            
+            if len(rewritten) > 200:
+                print(f"    ✅ ИИ обработал, {len(rewritten)} символов")
+                return rewritten
+        
+        return text
+        
+    except Exception as e:
+        print(f"    ⚠️ Ошибка ИИ: {e}")
+        return text
 
 def fetch_and_save():
     print(f"\n{'='*60}")
     print(f"  НАЧАЛО СБОРА НОВОСТЕЙ [{datetime.now()}]")
     print(f"{'='*60}")
     
-    # Создаем папку public если её нет
+    # Создаем папку public
     if not os.path.exists('public'):
-        print("📁 Создаем папку public...")
         os.makedirs('public')
     
     json_path = 'public/news_data_v3.json'
     version_path = 'public/version.json'
     
-    print(f"📄 JSON файл: {json_path}")
-    
-    # Загружаем существующие ссылки
+    # Загружаем существующие новости
     existing_links = set()
     old_news = []
     
@@ -326,29 +393,22 @@ def fetch_and_save():
                     if item.get('originalLink'):
                         existing_links.add(item['originalLink'])
             print(f"📊 Загружено {len(old_news)} старых новостей")
-            print(f"📊 Существующих ссылок: {len(existing_links)}")
-        except Exception as e:
-            print(f"⚠️ Ошибка загрузки старого JSON: {e}")
+        except:
             old_news = []
     
     all_news = old_news.copy()
     new_count = 0
     total_processed = 0
-    failed = 0
     
     for category, feeds in RSS_FEEDS.items():
-        print(f"\n📡 КАТЕГОРИЯ: {category} ({len(feeds)} источников)")
+        print(f"\n📡 {category}")
         
         for feed_url in feeds:
             try:
-                print(f"  📰 RSS: {feed_url}")
                 feed = feedparser.parse(feed_url)
                 
                 if not feed.entries:
-                    print(f"  ⚠️ Нет записей")
                     continue
-                
-                print(f"  📊 Найдено записей: {len(feed.entries)}")
                 
                 for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
                     total_processed += 1
@@ -356,13 +416,12 @@ def fetch_and_save():
                     if entry.link in existing_links:
                         continue
                     
-                    print(f"\n  🔍 НОВОСТЬ: {entry.title[:80]}...")
+                    print(f"\n  🔍 {entry.title[:80]}...")
                     
-                    # Загружаем текст
-                    full_text = fetch_article_text(entry.link)
+                    # Загружаем текст и картинки
+                    full_text, images = fetch_article_data(entry.link)
                     
                     if not full_text:
-                        failed += 1
                         continue
                     
                     # Получаем описание
@@ -370,24 +429,25 @@ def fetch_and_save():
                     description = re.sub(r'<[^>]+>', '', description)
                     description = clean_text(description)[:200]
                     
-                    # Форматируем текст в HTML
+                    # Применяем ИИ
+                    if USE_AI:
+                        full_text = ai_rewrite_text(full_text, entry.title, category)
+                    
+                    # Форматируем в HTML
                     paragraphs = full_text.split('. ')
                     content_html = ''
-                    for i, sent in enumerate(paragraphs[:5]):
+                    for i, sent in enumerate(paragraphs[:7]):  # Больше абзацев
                         if sent.strip():
                             content_html += f'<p>{sent.strip()}.</p>\n'
                     
-                    # Получаем картинки
-                    images = extract_images_from_entry(entry)
-                    
-                    # Создаём запись
+                    # Создаем запись
                     news_item = {
                         'id': hashlib.md5(entry.link.encode()).hexdigest()[:16],
                         'title': entry.title[:200],
                         'description': description[:150] + '...' if len(description) > 150 else description,
                         'content': content_html,
                         'category': category,
-                        'images': images,
+                        'images': images,  # Картинки из статьи
                         'originalLink': entry.link,
                         'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
                         'timestamp': datetime.now().isoformat()
@@ -397,29 +457,23 @@ def fetch_and_save():
                     existing_links.add(entry.link)
                     new_count += 1
                     
-                    print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)} | Текст: {len(full_text)} символов")
+                    print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)}")
                     
                     time.sleep(REQUEST_DELAY)
                     
             except Exception as e:
                 print(f"  ❌ Ошибка: {e}")
-                failed += 1
                 continue
     
-    # Сортируем по дате
+    # Сортируем и сохраняем
     all_news.sort(key=lambda x: x['timestamp'], reverse=True)
     
-    # Оставляем последние 200
     if len(all_news) > 200:
         all_news = all_news[:200]
     
     # Сохраняем JSON
-    try:
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(all_news, f, ensure_ascii=False, indent=2)
-        print(f"\n✅ JSON сохранен: {json_path}")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения JSON: {e}")
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(all_news, f, ensure_ascii=False, indent=2)
     
     # Сохраняем версию
     version_data = {
@@ -427,30 +481,22 @@ def fetch_and_save():
         'updated': datetime.now().isoformat(),
         'total': len(all_news),
         'new': new_count,
-        'processed': total_processed,
-        'failed': failed
+        'processed': total_processed
     }
     
-    try:
-        with open(version_path, 'w', encoding='utf-8') as f:
-            json.dump(version_data, f, ensure_ascii=False, indent=2)
-        print(f"✅ Version сохранен: {version_path}")
-    except Exception as e:
-        print(f"❌ Ошибка сохранения version: {e}")
+    with open(version_path, 'w', encoding='utf-8') as f:
+        json.dump(version_data, f, ensure_ascii=False, indent=2)
     
     print(f"\n{'='*60}")
-    print(f"✅ ИТОГИ РАБОТЫ:")
+    print(f"✅ ИТОГИ:")
     print(f"   Всего новостей: {len(all_news)}")
     print(f"   Новых добавлено: {new_count}")
-    print(f"   Всего обработано: {total_processed}")
-    print(f"   Не удалось загрузить: {failed}")
     print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
-    print(f"{'='*60}\n")
+    print(f"{'='*60}")
 
 if __name__ == '__main__':
     try:
         fetch_and_save()
     except Exception as e:
-        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        print(f"❌ Ошибка: {e}")
         traceback.print_exc()
-        sys.exit(1)
