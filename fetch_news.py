@@ -38,37 +38,37 @@ except ImportError:
 
 # ============ НАСТРОЙКИ ============
 TIMEOUT = 10
-MAX_ARTICLES_PER_FEED = 30  # УВЕЛИЧИЛИ ДО 30!
+MAX_ARTICLES_PER_FEED = 30
 REQUEST_DELAY = 1
 MAX_IMAGES = 3
 
-# ============ RSS ИСТОЧНИКИ (ТОЛЬКО НАДЕЖНЫЕ) ============
+# ============ RSS ИСТОЧНИКИ ============
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',           # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС
+        'https://ria.ru/export/rss2/politics/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Экономика': [
-        'https://ria.ru/export/rss2/economy/index.xml',            # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС
+        'https://ria.ru/export/rss2/economy/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Технологии': [
-        'https://ria.ru/export/rss2/technology/index.xml',         # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС
+        'https://ria.ru/export/rss2/technology/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Авто': [
-        'https://ria.ru/export/rss2/auto/index.xml',               # RIA.ru
+        'https://ria.ru/export/rss2/auto/index.xml',
     ],
     'Киберспорт': [
-        'https://www.cybersport.ru/rss',                           # Cybersport.ru
+        'https://www.cybersport.ru/rss',
     ],
     'Культура': [
-        'https://ria.ru/export/rss2/culture/index.xml',            # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС
+        'https://ria.ru/export/rss2/culture/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ],
     'Спорт': [
-        'https://ria.ru/export/rss2/sport/index.xml',              # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС
+        'https://ria.ru/export/rss2/sport/index.xml',
+        'https://tass.ru/rss/v2.xml',
     ]
 }
 
@@ -86,7 +86,6 @@ else:
 
 print(f"📊 Настройки: TIMEOUT={TIMEOUT}, MAX_ARTICLES={MAX_ARTICLES_PER_FEED}")
 print(f"🤖 ИИ: {'ВКЛЮЧЕН' if USE_AI else 'ВЫКЛЮЧЕН'}")
-print(f"📡 Источников: {sum(len(feeds) for feeds in RSS_FEEDS.values())}")
 print("=" * 60)
 
 def clean_text(text):
@@ -94,28 +93,20 @@ def clean_text(text):
     if not text:
         return ""
     
-    # Удаляем HTML теги
     text = re.sub(r'<[^>]+>', ' ', text)
-    
-    # Декодируем HTML сущности
     text = html.unescape(text)
-    
-    # Удаляем лишние пробелы и переносы
     text = re.sub(r'\s+', ' ', text)
     
-    # Короткий список мусора для быстрой очистки
     garbage_phrases = [
         'реклама', 'подпишись', 'telegram', 'vk', 'вконтакте', 
         'youtube', 'instagram', 'cookie', 'читать далее', 
         'фото:', 'видео:', 'смотрите также', 'по теме',
-        'все права защищены', 'источник:', 'ссылка:',
-        'наверх', 'показать полностью'
+        'все права защищены', 'источник:', 'ссылка:'
     ]
     
     for phrase in garbage_phrases:
         text = re.sub(phrase, '', text, flags=re.IGNORECASE)
     
-    # Убираем множественные точки и пробелы
     text = re.sub(r'\.{2,}', '.', text)
     text = re.sub(r'\s+', ' ', text)
     
@@ -137,7 +128,6 @@ def extract_text_fast(html_content):
             elif url.startswith('/'):
                 continue
             
-            # Проверяем, что это реальная картинка
             if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', url.lower()):
                 if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad|reklama)', url.lower()):
                     images.append(url)
@@ -180,7 +170,7 @@ def fetch_article_data(url):
         print(f"    📥 Загрузка: {url[:50]}...")
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
             'Referer': 'https://www.google.com/',
@@ -261,7 +251,6 @@ def fetch_and_save():
     print(f"  НАЧАЛО СБОРА НОВОСТЕЙ [{datetime.now().strftime('%H:%M:%S')}]")
     print(f"{'='*60}")
     
-    # Создаем папку public
     if not os.path.exists('public'):
         os.makedirs('public')
     
@@ -286,7 +275,6 @@ def fetch_and_save():
     all_news = old_news.copy()
     new_count = 0
     total_processed = 0
-    skipped_no_images = 0
     skipped_already_exists = 0
     
     for category, feeds in RSS_FEEDS.items():
@@ -305,7 +293,6 @@ def fetch_and_save():
                 print(f"  📊 Найдено записей: {entries_count}")
                 print(f"  🔍 Просматриваем первые {MAX_ARTICLES_PER_FEED} из {entries_count}")
                 
-                # Проходим по первым 30 записям
                 for i, entry in enumerate(feed.entries[:MAX_ARTICLES_PER_FEED], 1):
                     total_processed += 1
                     
@@ -317,12 +304,6 @@ def fetch_and_save():
                     
                     # Загружаем текст и картинки
                     full_text, images = fetch_article_data(entry.link)
-                    
-                    # ПРОВЕРКА: если нет картинок - пропускаем
-                    if not images or len(images) == 0:
-                        print(f"    ⚠️ ПРОПУЩЕНО: нет картинок")
-                        skipped_no_images += 1
-                        continue
                     
                     if not full_text:
                         full_text = entry.get('summary', '') or entry.get('description', '')
@@ -346,14 +327,14 @@ def fetch_and_save():
                     
                     description = full_text[:150] + '...' if full_text and len(full_text) > 150 else (full_text or entry.title)
                     
-                    # Создаем запись
+                    # Создаем запись (ДАЖЕ ЕСЛИ НЕТ КАРТИНОК!)
                     news_item = {
                         'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
                         'title': entry.title[:150],
                         'description': description,
                         'content': content_html,
                         'category': category,
-                        'images': images,
+                        'images': images,  # Может быть пустым
                         'originalLink': entry.link,
                         'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
                         'timestamp': datetime.now().isoformat()
@@ -363,7 +344,10 @@ def fetch_and_save():
                     existing_links.add(entry.link)
                     new_count += 1
                     
-                    print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)}")
+                    if images:
+                        print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)}")
+                    else:
+                        print(f"    ✅ СОХРАНЕНО | БЕЗ КАРТИНКИ")
                     
                     time.sleep(REQUEST_DELAY)
                     
@@ -389,7 +373,6 @@ def fetch_and_save():
         'total': len(all_news),
         'new': new_count,
         'processed': total_processed,
-        'skipped_no_images': skipped_no_images,
         'skipped_already_exists': skipped_already_exists,
         'with_images': sum(1 for item in all_news if item.get('images'))
     }
@@ -404,7 +387,6 @@ def fetch_and_save():
     print(f"   Новых добавлено: {new_count}")
     print(f"   Всего обработано: {total_processed}")
     print(f"   Пропущено (уже есть): {skipped_already_exists}")
-    print(f"   Пропущено (нет картинок): {skipped_no_images}")
     print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
     print(f"{'='*60}\n")
 
