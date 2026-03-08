@@ -1,10 +1,10 @@
-name: Автообновление ТОЛК  # Имя изменено
+name: Обновление новостей ТОЛК
 
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
-  
+
 permissions:
   contents: write
 
@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Важно для pull
       
       - name: Установка Python
         uses: actions/setup-python@v4
@@ -23,23 +25,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install feedparser requests beautifulsoup4 lxml
-          echo "✅ Установлены: feedparser, requests, beautifulsoup4, lxml"
-          pip list | grep -E "feedparser|requests|beautifulsoup4|lxml"
-      
-      - name: Проверка структуры
-        run: |
-          echo "📁 Текущая директория: $(pwd)"
-          ls -la
-          mkdir -p public
-          echo "✅ Папка public создана"
       
       - name: Создание serviceAccountKey.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
-          echo "✅ serviceAccountKey.json создан"
-          ls -la serviceAccountKey.json
       
       - name: Создание config.js
         run: |
@@ -51,63 +42,41 @@ jobs:
           echo "  messagingSenderId: \"79835817899\"," >> public/config.js
           echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
           echo "};" >> public/config.js
-          echo "✅ config.js создан"
-          cat public/config.js
       
       - name: Запуск импортера
-        run: |
-          echo "🚀 ЗАПУСК fetch_news.py"
-          echo "========================"
-          python fetch_news.py
-          echo "========================"
-          echo "✅ Скрипт завершен"
+        run: python fetch_news.py
       
-      - name: Проверка результатов
-        run: |
-          echo "📊 Проверка созданных файлов:"
-          if [ -f public/news_data_v3.json ]; then
-            echo "✅ news_data_v3.json существует"
-            echo "   Размер: $(wc -l < public/news_data_v3.json) строк"
-            echo "   Вес: $(du -h public/news_data_v3.json | cut -f1)"
-            echo ""
-            echo "📋 Первые 3 новости:"
-            head -n 20 public/news_data_v3.json
-          else
-            echo "❌ news_data_v3.json НЕ создан!"
-            exit 1
-          fi
-          
-          if [ -f public/version.json ]; then
-            echo ""
-            echo "✅ version.json существует"
-            cat public/version.json
-          fi
-      
-      - name: Проверка изменений в Git
-        id: check_changes
+      - name: Настройка Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+      
+      - name: Проверка изменений
+        id: check_changes
+        run: |
           git add public/news_data_v3.json public/version.json
           
           if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "📊 НЕТ новых новостей для коммита"
+            echo "Нет новых новостей"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "📊 ЕСТЬ новые новости!"
-            echo ""
-            echo "📋 Изменения:"
-            git diff --staged --stat
+            echo "Есть новые новости"
           fi
+      
+      - name: Pull последних изменений
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git pull --rebase origin main
+          echo "✅ Pull выполнен"
       
       - name: Коммит и пуш изменений
         if: steps.check_changes.outputs.changed == 'true'
         run: |
+          git add public/news_data_v3.json public/version.json
           git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
-          git push
-          echo "✅ Изменения отправлены в репозиторий"
+          git push origin main
+          echo "✅ Изменения отправлены"
       
       - name: Деплой на Firebase Hosting
         if: steps.check_changes.outputs.changed == 'true'
