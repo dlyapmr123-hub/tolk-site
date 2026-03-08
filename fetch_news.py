@@ -151,7 +151,7 @@ class NewsCollector:
             self.log(f"❌ Ошибка при получении токена: {e}", "ERROR")
             return None
     
-    def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
+def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
     """Загрузка страницы и извлечение текста"""
     try:
         self.log(f"Загрузка: {url[:60]}...", "LOAD")
@@ -172,7 +172,7 @@ class NewsCollector:
         for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
             tag.decompose()
         
-        # ===== ИСПРАВЛЕННЫЙ ПОИСК КАРТИНОК =====
+        # ===== ПОИСК КАРТИНОК =====
         images = []
         
         # 1. Для Ленты: ищем class="picture__image" (основные картинки статей)
@@ -201,20 +201,19 @@ class NewsCollector:
             if not src:
                 continue
             
-            # Пропускаем аватарки авторов (классы с author/avatar/profile)
+            # Пропускаем аватарки авторов
             img_class = ' '.join(img.get('class', []))
             if re.search(r'(author|avatar|profile|userpic|topic-authors)', img_class, re.I):
                 continue
             
-            # Проверяем расширение и размер
+            # Проверяем расширение
             if re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
-                # Проверяем, что это не иконка
                 if not re.search(r'(icon|logo|favicon|pixel|spacer|button)', src.lower()):
                     if src.startswith('//'):
                         src = 'https:' + src
                     images.append(src)
         
-        # Убираем дубликаты (оставляем только уникальные URL)
+        # Убираем дубликаты
         unique_images = []
         seen = set()
         for img in images:
@@ -225,9 +224,9 @@ class NewsCollector:
         if unique_images:
             self.stats['with_images'] += len(unique_images)
             self.log(f"Найдено уникальных картинок: {len(unique_images)}", "IMAGE")
-        # ===== КОНЕЦ ИСПРАВЛЕНИЯ =====
+        # ===== КОНЕЦ ПОИСКА КАРТИНОК =====
         
-        # Ищем текст (оставляем как есть)
+        # Ищем текст
         text_parts = []
         
         # Сначала ищем article
