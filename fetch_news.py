@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ФИНАЛЬНАЯ ВЕРСИЯ - ИИ ИСПРАВЛЯЕТ ВСЁ
+ФИНАЛЬНАЯ ВЕРСИЯ - ТЕКСТ ПРОХОДИТ ТОЛЬКО ЧЕРЕЗ ИИ
 """
 
 import feedparser
@@ -35,70 +35,38 @@ CONFIG = {
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# РАСШИРЕННЫЕ ИСТОЧНИКИ (ТАСС УДАЛЕН - ЗАМЕНЕН НА Interfax)
+# РАСШИРЕННЫЕ ИСТОЧНИКИ
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
         'https://ria.ru/export/rss2/politics/index.xml',
-        'https://www.interfax.ru/rss.asp',  # Interfax вместо ТАСС
     ],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',
         'https://ria.ru/export/rss2/economy/index.xml',
-        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Технологии': [
         'https://lenta.ru/rss/news/technology',
         'https://ria.ru/export/rss2/technology/index.xml',
         'https://habr.com/ru/rss/news/?fl=ru',
-        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Авто': [
         'https://lenta.ru/rss/news/auto',
         'https://ria.ru/export/rss2/auto/index.xml',
-        'https://motor.ru/rss',
     ],
     'Киберспорт': [
         'https://www.cybersport.ru/rss',
-        'https://stopgame.ru/rss/news.xml',
     ],
     'Культура': [
         'https://lenta.ru/rss/news/art',
         'https://ria.ru/export/rss2/culture/index.xml',
-        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
         'https://www.championat.com/news/rss/',
-        'https://www.interfax.ru/rss.asp',  # Interfax
     ]
 }
-
-class TextCleaner:
-    """МИНИМАЛЬНАЯ ОЧИСТКА - ОСТАЛЬНОЕ СДЕЛАЕТ ИИ"""
-    
-    @staticmethod
-    def clean_article_text(text: str) -> str:
-        """Только базовая очистка"""
-        if not text:
-            return ""
-        
-        # 1. Удаляем HTML теги
-        text = re.sub(r'<[^>]+>', ' ', text)
-        
-        # 2. Декодируем HTML сущности
-        text = html.unescape(text)
-        
-        # 3. Убираем только явный мусор
-        text = re.sub(r'Читайте также:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
-        text = re.sub(r'Фото:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
-        text = re.sub(r'Видео:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
-        
-        # 4. Убираем множественные пробелы
-        text = re.sub(r' {2,}', ' ', text)
-        
-        return text.strip()
 
 class NewsCollector:
     """Сборщик новостей"""
@@ -114,7 +82,7 @@ class NewsCollector:
             'already_exists': 0,
             'with_images': 0,
             'errors': 0,
-            'duplicate_images_removed': 0
+            'ai_processed': 0
         }
         
         self.seen_images = set()
@@ -128,8 +96,8 @@ class NewsCollector:
         timestamp = datetime.now().strftime('%H:%M:%S')
         emoji = {
             "INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️", 
-            "ERROR": "❌", "LOAD": "📥", "CLEAN": "🧹",
-            "AI": "🤖", "IMAGE": "📸", "TEXT": "📝"
+            "ERROR": "❌", "LOAD": "📥", "AI": "🤖", 
+            "IMAGE": "📸", "TEXT": "📝"
         }.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
     
@@ -163,16 +131,16 @@ class NewsCollector:
             # Ищем текст
             text_parts = []
             
-            # 1. Ищем article
+            # Ищем статью
             article = soup.find('article')
             if article:
-                paragraphs = article.find_all(['p', 'div'], class_=re.compile(r'paragraph|text|content', re.I))
-                for p in paragraphs:
+                paragraphs = article.find_all('p')
+                for p in paragraphs[:20]:
                     text = p.get_text(strip=True)
-                    if len(text) > 30:
+                    if len(text) > 40:
                         text_parts.append(text)
             
-            # 2. Ищем все параграфы
+            # Если не нашли, берем все параграфы
             if not text_parts:
                 paragraphs = soup.find_all('p')
                 for p in paragraphs[:20]:
@@ -183,8 +151,10 @@ class NewsCollector:
             if text_parts:
                 full_text = ' '.join(text_parts)
                 
-                # МИНИМАЛЬНАЯ ОЧИСТКА
-                full_text = TextCleaner.clean_article_text(full_text)
+                # МИНИМАЛЬНАЯ очистка (только HTML)
+                full_text = re.sub(r'<[^>]+>', ' ', full_text)
+                full_text = html.unescape(full_text)
+                full_text = re.sub(r'\s+', ' ', full_text).strip()
                 
                 # Убираем дубликаты картинок
                 unique_images = []
@@ -208,49 +178,64 @@ class NewsCollector:
             self.stats['errors'] += 1
             return None, []
     
-    def ai_rewrite(self, text: str, title: str) -> str:
-        """ИИ переписывание - исправит все проблемы"""
+    def ai_rewrite(self, text: str, title: str, category: str) -> str:
+        """ИИ переписывание - УДАЛЯЕТ УПОМИНАНИЯ САЙТОВ И ДЕЛАЕТ ТЕКСТ УНИКАЛЬНЫМ"""
         if not CONFIG['USE_AI'] or len(text) < 200:
             return text
         
         try:
-            self.log("ИИ обрабатывает...", "AI")
+            self.log("🤖 ИИ обрабатывает текст...", "AI")
             
-            prompt = f"""Перепиши эту новость красивым русским языком.
-Исправь все проблемы с пробелами, сделай текст грамотным.
-Сохрани все факты, напиши связно (4-5 предложений).
-Убирай различные упоминания о других сайтах с новостями, переписывай весь текст своми словами но сохраняй суть.
+            prompt = f"""Ты профессиональный журналист. Перепиши эту новость полностью своими словами.
 
+ВАЖНЫЕ ИНСТРУКЦИИ:
+1. Удали все упоминания других сайтов (РИА, ТАСС, Лента, Интерфакс и т.д.)
+2. Удали фразы типа "об этом сообщает", "по информации", "как пишет"
+3. Напиши связный текст из 4-6 предложений
+4. Сохрани все важные факты
+5. Текст должен быть уникальным (не копией оригинала)
+
+Категория: {category}
 Заголовок: {title}
-Текст: {text[:1500]}
 
-Переписанный текст:"""
+Оригинальный текст:
+{text[:2000]}
+
+Твой переписанный текст (только текст статьи, без пояснений):"""
             
             headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
             data = {
                 "model": CONFIG['AI_MODEL'],
                 "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.7,
-                "max_tokens": 600
+                "temperature": 0.8,  # Выше температура = больше изменений
+                "max_tokens": 1000
             }
             
-            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
+            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=30)
             
             if response.status_code == 200:
                 result = response.json()
                 rewritten = result["choices"][0]["message"]["content"]
-                # Только базовая чистка пробелов
+                
+                # Базовая очистка
                 rewritten = re.sub(r'\s+', ' ', rewritten).strip()
+                
+                self.stats['ai_processed'] += 1
+                self.log(f"✅ ИИ завершил: {len(rewritten)} символов", "AI")
+                
                 return rewritten
-        except:
-            pass
-        
-        return text
+            else:
+                self.log(f"⚠️ Ошибка ИИ: {response.status_code}", "WARNING")
+                return text
+                
+        except Exception as e:
+            self.log(f"⚠️ Ошибка ИИ: {e}", "WARNING")
+            return text
     
     def run(self):
         print("\n" + "="*70)
         print("🚀 ФИНАЛЬНЫЙ СБОРЩИК НОВОСТЕЙ")
-        print("🧹 Минимальная очистка + ИИ")
+        print("🤖 ТОЛЬКО ИИ - текст всегда меняется")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
@@ -301,12 +286,9 @@ class NewsCollector:
                             full_text = entry.title
                             self.log("Использую заголовок", "WARNING")
                         
-                        # Применяем ИИ
-                        if CONFIG['USE_AI'] and len(full_text) > 200:
-                            full_text = self.ai_rewrite(full_text, entry.title)
-                        
-                        # Финальная минимальная очистка
-                        full_text = TextCleaner.clean_article_text(full_text)
+                        # 100% ПРОГОНЯЕМ ЧЕРЕЗ ИИ
+                        if CONFIG['USE_AI'] and len(full_text) > 100:
+                            full_text = self.ai_rewrite(full_text, entry.title, category)
                         
                         # Форматируем в HTML
                         sentences = re.split(r'(?<=[.!?])\s+', full_text)
@@ -356,6 +338,19 @@ class NewsCollector:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(self.all_news, f, ensure_ascii=False, indent=2)
         
+        # Сохраняем версию
+        version_data = {
+            'version': datetime.now().timestamp(),
+            'updated': datetime.now().isoformat(),
+            'total': len(self.all_news),
+            'new': self.new_count,
+            'processed': self.total_processed,
+            **self.stats
+        }
+        
+        with open('public/version.json', 'w', encoding='utf-8') as f:
+            json.dump(version_data, f, ensure_ascii=False, indent=2)
+        
         # Итоги
         print("\n" + "="*70)
         print("📊 ИТОГИ РАБОТЫ:")
@@ -365,6 +360,7 @@ class NewsCollector:
         print(f"   Уже было: {self.stats['already_exists']}")
         print(f"   Страниц загружено: {self.stats['page_loaded']}")
         print(f"   Текст найден: {self.stats['text_found']}")
+        print(f"   Обработано ИИ: {self.stats['ai_processed']}")
         print(f"   С картинками: {self.stats['with_images']}")
         print(f"   Ошибок: {self.stats['errors']}")
         print("="*70)
