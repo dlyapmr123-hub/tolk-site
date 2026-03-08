@@ -47,44 +47,31 @@ RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',                    # Lenta.ru - быстро
         'https://ria.ru/export/rss2/politics/index.xml',         # RIA.ru - быстро
-        'https://aif.ru/rss/politics.php',                       # AiF.ru - новый быстрый
-        'https://www.mk.ru/rss/politics/index.xml',              # MK.ru - новый быстрый
-        'https://iz.ru/export/rss.xml',                          # Известия - новый
     ],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',                    # Lenta.ru
         'https://ria.ru/export/rss2/economy/index.xml',          # RIA.ru
-        'https://aif.ru/rss/economy.php',                        # AiF.ru новый
-        'https://www.mk.ru/rss/economics/index.xml',             # MK.ru новый
         'https://www.rbc.ru/rss/',                                # RBC.ru
     ],
     'Технологии': [
         'https://lenta.ru/rss/news/technology',                   # Lenta.ru
         'https://ria.ru/export/rss2/technology/index.xml',       # RIA.ru
         'https://habr.com/ru/rss/news/?fl=ru',                    # Habr.com
-        'https://aif.ru/rss/science.php',                         # AiF.ru наука
     ],
     'Авто': [
         'https://lenta.ru/rss/news/auto',                         # Lenta.ru
-        'https://motor.ru/rss',                                    # Motor.ru
-        'https://aif.ru/rss/auto.php',                            # AiF.ru авто
     ],
     'Киберспорт': [
         'https://www.cybersport.ru/rss',                          # Cybersport.ru
-        'https://stopgame.ru/rss/news.xml',                       # Stopgame.ru
     ],
     'Культура': [
         'https://lenta.ru/rss/news/art',                          # Lenta.ru
         'https://ria.ru/export/rss2/culture/index.xml',          # RIA.ru
-        'https://aif.ru/rss/culture.php',                         # AiF.ru культура
-        'https://www.mk.ru/rss/culture/index.xml',               # MK.ru культура
     ],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',                        # Lenta.ru
         'https://ria.ru/export/rss2/sport/index.xml',            # RIA.ru
         'https://www.championat.com/news/rss/',                   # Championat.com
-        'https://aif.ru/rss/sport.php',                           # AiF.ru спорт
-        'https://www.mk.ru/rss/sport/index.xml',                 # MK.ru спорт
     ]
 }
 
