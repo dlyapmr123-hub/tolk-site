@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ПРОФЕССИОНАЛЬНЫЙ СБОРЩИК НОВОСТЕЙ ДЛЯ ТОЛК
-Версия: 3.0
-Источники: РИА Новости, ТАСС, Lenta.ru, RBC, Interfax
-Особенности: Полный текст, ИИ-рерайт, картинки, автообновление
+СУПЕР-СБОРЩИК - НАЙДЕТ ТЕКСТ В ЛЮБОМ МЕСТЕ
 """
 
 import feedparser
@@ -19,17 +16,16 @@ import sys
 import traceback
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
-from urllib.parse import urlparse
 
 import requests
 
 # Конфигурация
 CONFIG = {
-    'TIMEOUT': 15,
+    'TIMEOUT': 10,
     'MAX_ARTICLES_PER_FEED': 30,
-    'REQUEST_DELAY': 0.5,
+    'REQUEST_DELAY': 0.2,
     'MAX_IMAGES': 3,
-    'MIN_TEXT_LENGTH': 300,
+    'MIN_TEXT_LENGTH': 100,  # Уменьшил минимум
     'MAX_NEWS_TOTAL': 500,
     'USE_AI': True,
     'AI_MODEL': 'gpt-3.5-turbo',
@@ -38,48 +34,46 @@ CONFIG = {
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# РАБОЧИЕ ИСТОЧНИКИ RSS (протестированы)
+# БЫСТРЫЕ ИСТОЧНИКИ
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',      # РИА Новости - есть текст
-        'https://tass.ru/rss/v2.xml',                          # ТАСС - есть текст
-        'https://lenta.ru/rss/news/politics',                  # Lenta.ru - быстро
-        'https://www.rbc.ru/rss/',                             # RBC - экономика/политика
+        'https://ria.ru/export/rss2/politics/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://lenta.ru/rss/news/politics',
     ],
     'Экономика': [
-        'https://ria.ru/export/rss2/economy/index.xml',        # РИА
-        'https://tass.ru/rss/v2.xml',                          # ТАСС
-        'https://lenta.ru/rss/news/economics',                 # Lenta.ru
-        'https://www.rbc.ru/rss/',                             # RBC
+        'https://ria.ru/export/rss2/economy/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://lenta.ru/rss/news/economics',
     ],
     'Технологии': [
-        'https://ria.ru/export/rss2/technology/index.xml',     # РИА
-        'https://tass.ru/rss/v2.xml',                          # ТАСС
-        'https://lenta.ru/rss/news/technology',                # Lenta.ru
-        'https://www.interfax.ru/rss.asp',                     # Interfax
+        'https://ria.ru/export/rss2/technology/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://lenta.ru/rss/news/technology',
+        'https://www.interfax.ru/rss.asp',
     ],
     'Авто': [
-        'https://ria.ru/export/rss2/auto/index.xml',           # РИА Авто
-        'https://lenta.ru/rss/news/auto',                      # Lenta.ru Авто
+        'https://ria.ru/export/rss2/auto/index.xml',
+        'https://lenta.ru/rss/news/auto',
     ],
     'Киберспорт': [
-        'https://www.cybersport.ru/rss',                       # Cybersport
+        'https://www.cybersport.ru/rss',
     ],
     'Культура': [
-        'https://ria.ru/export/rss2/culture/index.xml',        # РИА
-        'https://tass.ru/rss/v2.xml',                          # ТАСС
-        'https://lenta.ru/rss/news/art',                       # Lenta.ru
+        'https://ria.ru/export/rss2/culture/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://lenta.ru/rss/news/art',
     ],
     'Спорт': [
-        'https://ria.ru/export/rss2/sport/index.xml',          # РИА
-        'https://tass.ru/rss/v2.xml',                          # ТАСС
-        'https://lenta.ru/rss/news/sport',                     # Lenta.ru
-        'https://www.championat.com/news/rss/',                # Championat
+        'https://ria.ru/export/rss2/sport/index.xml',
+        'https://tass.ru/rss/v2.xml',
+        'https://lenta.ru/rss/news/sport',
+        'https://www.championat.com/news/rss/',
     ]
 }
 
-class NewsCollector:
-    """Профессиональный сборщик новостей"""
+class SuperCollector:
+    """СУПЕР-СБОРЩИК - найдет текст любой ценой"""
     
     def __init__(self):
         self.existing_links = set()
@@ -87,114 +81,115 @@ class NewsCollector:
         self.new_count = 0
         self.total_processed = 0
         self.stats = {
+            'text_found': 0,
             'no_text': 0,
-            'too_short': 0,
             'already_exists': 0,
             'with_images': 0
         }
-        
-        # Настройка вывода
-        if hasattr(sys.stdout, 'reconfigure'):
-            sys.stdout.reconfigure(line_buffering=True)
     
-    def log(self, message: str, level: str = "INFO"):
-        """Красивый вывод логов"""
+    def log(self, message, level="INFO"):
         timestamp = datetime.now().strftime('%H:%M:%S')
-        emoji = {
-            "INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️", 
-            "ERROR": "❌", "DEBUG": "🔍", "AI": "🤖", "IMAGE": "📸"
-        }.get(level, "📌")
+        emoji = {"INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️", "ERROR": "❌", "TEXT": "📝"}.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
     
-    def clean_html(self, text: str) -> str:
-        """Очистка HTML от мусора"""
-        if not text:
-            return ""
+    def extract_text_brutal(self, entry) -> Optional[str]:
+        """
+        ЖЕСТОКИЙ ПОИСК ТЕКСТА - проверит ВСЕ возможные поля
+        """
+        text_candidates = []
         
-        # Удаляем HTML теги
-        text = re.sub(r'<[^>]+>', ' ', text)
-        
-        # Декодируем HTML сущности
-        text = html.unescape(text)
-        
-        # Удаляем лишние пробелы
-        text = re.sub(r'\s+', ' ', text)
-        
-        # Удаляем мусорные фразы
-        garbage_patterns = [
-            r'Читайте также:.*?(?=\.|$)',
-            r'Фото:.*?(?=\.|$)',
-            r'Видео:.*?(?=\.|$)',
-            r'Смотрите также.*?(?=\.|$)',
-            r'По теме.*?(?=\.|$)',
-            r'Источник:.*?(?=\.|$)',
-            r'Ссылка:.*?(?=\.|$)',
-            r'Telegram',
-            r'VK',
-            r'Вконтакте',
-            r'YouTube',
-            r'Instagram',
-            r'Twitter',
-            r'Facebook',
-            r'реклама',
-            r'cookie',
-            r'конфиденциальность',
-            r'все права защищены',
-            r'©.*?\d{4}',
+        # 1. ПРОВЕРЯЕМ ВСЕ ПОЛЯ RSS
+        fields_to_check = [
+            'content', 'content_encoded', 'summary_detail', 
+            'description', 'summary', 'title_detail',
+            'subtitle', 'subtitle_detail', 'info', 'info_detail',
+            'tagline', 'tagline_detail', 'rights', 'rights_detail'
         ]
         
-        for pattern in garbage_patterns:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        for field in fields_to_check:
+            try:
+                if hasattr(entry, field):
+                    field_value = getattr(entry, field)
+                    
+                    # Если это список (как content)
+                    if isinstance(field_value, list):
+                        for item in field_value:
+                            if hasattr(item, 'value') and item.value:
+                                text_candidates.append(str(item.value))
+                            elif isinstance(item, dict) and item.get('value'):
+                                text_candidates.append(str(item['value']))
+                            elif isinstance(item, str):
+                                text_candidates.append(item)
+                    
+                    # Если это объект с value
+                    elif hasattr(field_value, 'value') and field_value.value:
+                        text_candidates.append(str(field_value.value))
+                    
+                    # Если это просто строка
+                    elif isinstance(field_value, str):
+                        text_candidates.append(field_value)
+                    
+                    # Если это словарь
+                    elif isinstance(field_value, dict):
+                        for key in ['value', 'content', 'text', 'data']:
+                            if key in field_value and field_value[key]:
+                                text_candidates.append(str(field_value[key]))
+            except:
+                pass
         
-        # Чистка пунктуации
-        text = re.sub(r'\.{3,}', '.', text)
-        text = re.sub(r'\.{2,}', '.', text)
-        text = re.sub(r'\s+', ' ', text)
+        # 2. ПРОВЕРЯЕМ ВСЕ АТРИБУТЫ (на всякий случай)
+        for attr_name in dir(entry):
+            if not attr_name.startswith('_') and attr_name not in fields_to_check:
+                try:
+                    attr_value = getattr(entry, attr_name)
+                    if isinstance(attr_value, str) and len(attr_value) > 100:
+                        text_candidates.append(attr_value)
+                except:
+                    pass
         
-        return text.strip()
-    
-    def extract_text_from_entry(self, entry) -> Optional[str]:
-        """Извлечение текста из записи RSS"""
+        # 3. ОЧИЩАЕМ И ВЫБИРАЕМ ЛУЧШИЙ ТЕКСТ
+        best_text = None
+        best_length = 0
         
-        # Поле content (самое полное)
-        if hasattr(entry, 'content'):
-            for content in entry.content:
-                if content.get('value'):
-                    text = self.clean_html(content['value'])
-                    if len(text) > CONFIG['MIN_TEXT_LENGTH']:
-                        return text
+        for raw_text in text_candidates:
+            if not raw_text or not isinstance(raw_text, str):
+                continue
+            
+            # Очищаем от HTML
+            clean = re.sub(r'<[^>]+>', ' ', raw_text)
+            clean = html.unescape(clean)
+            clean = re.sub(r'\s+', ' ', clean).strip()
+            
+            # Убираем мусор
+            clean = re.sub(r'Читайте также.*?(?=\.|$)', '', clean, flags=re.IGNORECASE)
+            clean = re.sub(r'Фото:.*?(?=\.|$)', '', clean, flags=re.IGNORECASE)
+            clean = re.sub(r'Видео:.*?(?=\.|$)', '', clean, flags=re.IGNORECASE)
+            
+            length = len(clean)
+            
+            if length > best_length:
+                best_length = length
+                best_text = clean
         
-        # Поле content_encoded
-        if hasattr(entry, 'content_encoded'):
-            text = self.clean_html(entry.content_encoded)
-            if len(text) > CONFIG['MIN_TEXT_LENGTH']:
-                return text
+        # 4. ЕСЛИ НИЧЕГО НЕ НАШЛИ - ИСПОЛЬЗУЕМ ТАЙТЛ
+        if not best_text and hasattr(entry, 'title'):
+            best_text = entry.title
+            best_length = len(best_text)
+            self.log(f"Использую только заголовок: {best_text[:50]}...", "WARNING")
         
-        # Поле summary_detail
-        if hasattr(entry, 'summary_detail') and hasattr(entry.summary_detail, 'value'):
-            text = self.clean_html(entry.summary_detail.value)
-            if len(text) > CONFIG['MIN_TEXT_LENGTH']:
-                return text
+        if best_text and best_length > 50:
+            self.log(f"Найден текст: {best_length} символов", "TEXT")
+            self.stats['text_found'] += 1
+            return best_text
         
-        # Поле description
-        if hasattr(entry, 'description'):
-            text = self.clean_html(entry.description)
-            if len(text) > CONFIG['MIN_TEXT_LENGTH']:
-                return text
-        
-        # Поле summary
-        if hasattr(entry, 'summary'):
-            text = self.clean_html(entry.summary)
-            if len(text) > CONFIG['MIN_TEXT_LENGTH']:
-                return text
-        
+        self.stats['no_text'] += 1
         return None
     
-    def extract_images_from_entry(self, entry) -> List[str]:
-        """Извлечение картинок из записи"""
+    def extract_images_brutal(self, entry) -> List[str]:
+        """Поиск картинок везде"""
         images = []
         
-        # Из media:content
+        # media:content
         if hasattr(entry, 'media_content'):
             for media in entry.media_content:
                 if media.get('url'):
@@ -203,117 +198,72 @@ class NewsCollector:
                         url = 'https:' + url
                     images.append(url)
         
-        # Из links
+        # links
         if hasattr(entry, 'links'):
             for link in entry.links:
                 if link.get('type', '').startswith('image/'):
                     images.append(link.get('href'))
         
-        # Из summary (ищем img теги)
-        if hasattr(entry, 'summary'):
-            img_matches = re.findall(r'<img[^>]+src="([^">]+)"', entry.summary)
-            for url in img_matches:
-                if url.startswith('//'):
-                    url = 'https:' + url
-                images.append(url)
+        # Ищем в тексте
+        for field in ['summary', 'description', 'content', 'content_encoded']:
+            if hasattr(entry, field):
+                text = str(getattr(entry, field))
+                img_matches = re.findall(r'<img[^>]+src="([^">]+)"', text)
+                for url in img_matches:
+                    if url.startswith('//'):
+                        url = 'https:' + url
+                    images.append(url)
         
         # Убираем дубликаты
-        unique_images = []
+        unique = []
         seen = set()
         for img in images:
             if img not in seen:
                 seen.add(img)
-                unique_images.append(img)
+                unique.append(img)
         
-        return unique_images[:CONFIG['MAX_IMAGES']]
+        return unique[:CONFIG['MAX_IMAGES']]
     
-    def ai_rewrite(self, text: str, title: str, category: str) -> str:
-        """Переписывание текста через ИИ"""
-        if not CONFIG['USE_AI'] or len(text) < 300:
+    def ai_rewrite(self, text, title):
+        """Быстрый ИИ"""
+        if not CONFIG['USE_AI'] or len(text) < 200:
             return text
         
         try:
-            self.log(f"ИИ обрабатывает текст...", "AI")
+            prompt = f"""Перепиши: {title}
             
-            # Берем часть текста для ИИ
-            text_for_ai = text[:2000] if len(text) > 2000 else text
-            
-            prompt = f"""Ты профессиональный журналист. Перепиши эту новость своими словами, сохранив все факты.
-Напиши связный, грамотный текст из 4-6 предложений. Убери рекламу и лишнюю информацию.
+Оригинал: {text[:1000]}
 
-Категория: {category}
-Заголовок: {title}
-
-Текст новости:
-{text_for_ai}
-
-Переписанная новость:"""
+Краткий пересказ (3-4 предложения):"""
             
-            headers = {
-                "Authorization": f"Bearer {CONFIG['AI_API_KEY']}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": CONFIG['SITE_URL'],
-                "X-Title": "Tolk News"
-            }
-            
+            headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
             data = {
                 "model": CONFIG['AI_MODEL'],
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.7,
-                "max_tokens": 800
+                "max_tokens": 500
             }
             
-            response = requests.post(
-                CONFIG['AI_API_URL'], 
-                headers=headers, 
-                json=data, 
-                timeout=20
-            )
+            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=10)
             
             if response.status_code == 200:
                 result = response.json()
                 rewritten = result["choices"][0]["message"]["content"]
-                rewritten = self.clean_html(rewritten)
-                
-                if len(rewritten) > 150:
-                    self.log(f"ИИ завершил: {len(rewritten)} символов", "AI")
-                    return rewritten
-                else:
-                    self.log(f"ИИ вернул короткий текст", "WARNING")
-                    return text
-            else:
-                self.log(f"Ошибка ИИ: {response.status_code}", "WARNING")
-                return text
-                
-        except Exception as e:
-            self.log(f"Ошибка ИИ: {e}", "WARNING")
-            return text
+                return re.sub(r'\s+', ' ', rewritten).strip()
+        except:
+            pass
+        
+        return text
     
-    def format_content_html(self, text: str) -> str:
-        """Форматирование текста в HTML"""
-        if not text:
-            return "<p>Текст новости временно недоступен</p>"
+    def run(self):
+        print("\n" + "="*70)
+        print("🚀 СУПЕР-СБОРЩИК ЗАПУЩЕН")
+        print("="*70)
         
-        # Разбиваем на предложения
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+        os.makedirs('public', exist_ok=True)
+        json_path = 'public/news_data_v3.json'
         
-        html_parts = []
-        for sent in sentences[:8]:  # Максимум 8 предложений
-            sent = sent.strip()
-            if sent:
-                # Убираем лишние точки в конце
-                sent = re.sub(r'\.+$', '.', sent)
-                if not sent.endswith('.'):
-                    sent += '.'
-                html_parts.append(f'<p>{sent}</p>')
-        
-        if not html_parts:
-            return f"<p>{text[:300]}...</p>"
-        
-        return '\n'.join(html_parts)
-    
-    def load_existing_news(self, json_path: str):
-        """Загрузка существующих новостей"""
+        # Загружаем старые
         if os.path.exists(json_path):
             try:
                 with open(json_path, 'r', encoding='utf-8') as f:
@@ -322,189 +272,96 @@ class NewsCollector:
                         if item.get('originalLink'):
                             self.existing_links.add(item['originalLink'])
                 self.log(f"Загружено {len(self.all_news)} старых новостей")
-            except Exception as e:
-                self.log(f"Ошибка загрузки: {e}", "WARNING")
+            except:
                 self.all_news = []
-    
-    def process_feed(self, category: str, feed_url: str):
-        """Обработка одного RSS потока"""
-        self.log(f"Чтение {feed_url}", "DEBUG")
         
-        try:
-            feed = feedparser.parse(feed_url)
-            
-            if feed.bozo:
-                self.log(f"Ошибка парсинга: {feed.bozo_exception}", "WARNING")
-            
-            entries_count = len(feed.entries)
-            if entries_count == 0:
-                self.log(f"Нет записей", "WARNING")
-                return
-            
-            self.log(f"Найдено записей: {entries_count}")
-            
-            for idx, entry in enumerate(feed.entries[:CONFIG['MAX_ARTICLES_PER_FEED']], 1):
-                self.total_processed += 1
-                
-                # Проверка на дубликат
-                if entry.link in self.existing_links:
-                    self.stats['already_exists'] += 1
-                    continue
-                
-                self.log(f"[{idx}/{entries_count}] {entry.title[:80]}...")
-                
-                # Извлечение текста
-                full_text = self.extract_text_from_entry(entry)
-                
-                if not full_text:
-                    self.log(f"Текст не найден", "WARNING")
-                    self.stats['no_text'] += 1
-                    continue
-                
-                if len(full_text) < CONFIG['MIN_TEXT_LENGTH']:
-                    self.log(f"Текст слишком короткий ({len(full_text)} символов)", "WARNING")
-                    self.stats['too_short'] += 1
-                    continue
-                
-                self.log(f"Текст: {len(full_text)} символов")
-                
-                # ИИ обработка
-                if CONFIG['USE_AI']:
-                    full_text = self.ai_rewrite(full_text, entry.title, category)
-                
-                # Картинки
-                images = self.extract_images_from_entry(entry)
-                if images:
-                    self.stats['with_images'] += 1
-                    self.log(f"Картинок: {len(images)}", "IMAGE")
-                
-                # Форматирование
-                content_html = self.format_content_html(full_text)
-                description = full_text[:200] + '...' if len(full_text) > 200 else full_text
-                
-                # Создание записи
-                news_item = {
-                    'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
-                    'title': entry.title.strip()[:250],
-                    'description': description,
-                    'content': content_html,
-                    'category': category,
-                    'images': images,
-                    'originalLink': entry.link,
-                    'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-                self.all_news.append(news_item)
-                self.existing_links.add(entry.link)
-                self.new_count += 1
-                
-                self.log(f"✅ СОХРАНЕНО")
-                
-                time.sleep(CONFIG['REQUEST_DELAY'])
-                
-        except Exception as e:
-            self.log(f"Ошибка: {e}", "ERROR")
-            traceback.print_exc()
-    
-    def run(self):
-        """Основной запуск"""
-        print("\n" + "="*70)
-        print("🚀 ЗАПУСК ПРОФЕССИОНАЛЬНОГО СБОРЩИКА НОВОСТЕЙ")
-        print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"🤖 ИИ: {'АКТИВЕН' if CONFIG['USE_AI'] else 'ОТКЛЮЧЕН'}")
-        print(f"📡 Источников: {sum(len(feeds) for feeds in RSS_FEEDS.values())}")
-        print("="*70 + "\n")
-        
-        # Создание папки
-        os.makedirs('public', exist_ok=True)
-        
-        json_path = 'public/news_data_v3.json'
-        
-        # Загрузка существующих новостей
-        self.load_existing_news(json_path)
-        
-        # Обработка всех источников
+        # Собираем новые
         for category, feeds in RSS_FEEDS.items():
-            print(f"\n📊 КАТЕГОРИЯ: {category}")
-            print("-" * 40)
-            
             for feed_url in feeds:
-                self.process_feed(category, feed_url)
+                try:
+                    self.log(f"\n📡 {category} - {feed_url.split('/')[-1]}")
+                    feed = feedparser.parse(feed_url)
+                    
+                    entries = list(feed.entries)[:CONFIG['MAX_ARTICLES_PER_FEED']]
+                    
+                    for idx, entry in enumerate(entries, 1):
+                        self.total_processed += 1
+                        
+                        if entry.link in self.existing_links:
+                            self.stats['already_exists'] += 1
+                            continue
+                        
+                        self.log(f"[{idx}/{len(entries)}] {entry.title[:60]}...")
+                        
+                        # ЖЕСТКИЙ ПОИСК ТЕКСТА
+                        full_text = self.extract_text_brutal(entry)
+                        
+                        if not full_text:
+                            self.log(f"❌ Текст не найден! Но это невозможно!", "ERROR")
+                            continue
+                        
+                        # Картинки
+                        images = self.extract_images_brutal(entry)
+                        if images:
+                            self.stats['with_images'] += 1
+                            self.log(f"📸 Картинок: {len(images)}")
+                        
+                        # ИИ
+                        if CONFIG['USE_AI']:
+                            full_text = self.ai_rewrite(full_text, entry.title)
+                        
+                        # Форматируем
+                        sentences = re.split(r'(?<=[.!?])\s+', full_text)
+                        content_html = '\n'.join([f'<p>{s.strip()}</p>' for s in sentences[:6] if s.strip()])
+                        
+                        if not content_html:
+                            content_html = f'<p>{full_text[:300]}</p>'
+                        
+                        # Создаем
+                        news_item = {
+                            'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
+                            'title': entry.title.strip(),
+                            'description': full_text[:200] + '...',
+                            'content': content_html,
+                            'category': category,
+                            'images': images,
+                            'originalLink': entry.link,
+                            'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
+                            'timestamp': datetime.now().isoformat()
+                        }
+                        
+                        self.all_news.append(news_item)
+                        self.existing_links.add(entry.link)
+                        self.new_count += 1
+                        
+                        self.log(f"✅ СОХРАНЕНО | Текст: {len(full_text)} символов")
+                        
+                        time.sleep(CONFIG['REQUEST_DELAY'])
+                        
+                except Exception as e:
+                    self.log(f"Ошибка: {e}", "ERROR")
+                    continue
         
-        # Сортировка и сохранение
+        # Сохраняем
         self.all_news.sort(key=lambda x: x['timestamp'], reverse=True)
         
-        # Ограничение количества
         if len(self.all_news) > CONFIG['MAX_NEWS_TOTAL']:
             self.all_news = self.all_news[:CONFIG['MAX_NEWS_TOTAL']]
         
-        # Сохранение JSON
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(self.all_news, f, ensure_ascii=False, indent=2)
         
-        # Сохранение версии
-        version_data = {
-            'version': datetime.now().timestamp(),
-            'updated': datetime.now().isoformat(),
-            'total': len(self.all_news),
-            'new': self.new_count,
-            'processed': self.total_processed,
-            **self.stats
-        }
-        
-        with open('public/version.json', 'w', encoding='utf-8') as f:
-            json.dump(version_data, f, ensure_ascii=False, indent=2)
-        
         # Итоги
         print("\n" + "="*70)
-        print("📊 ИТОГИ РАБОТЫ:")
+        print("📊 ИТОГИ:")
         print(f"   Всего новостей: {len(self.all_news)}")
         print(f"   Новых добавлено: {self.new_count}")
         print(f"   Всего обработано: {self.total_processed}")
-        print(f"   Уже было в базе: {self.stats['already_exists']}")
-        print(f"   Нет текста: {self.stats['no_text']}")
-        print(f"   Слишком короткие: {self.stats['too_short']}")
+        print(f"   Уже было: {self.stats['already_exists']}")
+        print(f"   Текст найден: {self.stats['text_found']}")
         print(f"   С картинками: {self.stats['with_images']}")
-        print("="*70 + "\n")
-
-def check_rss_feeds():
-    """Проверка доступности RSS лент"""
-    print("\n🔍 ПРОВЕРКА RSS ИСТОЧНИКОВ")
-    print("-" * 40)
-    
-    working = 0
-    total = 0
-    
-    for category, feeds in RSS_FEEDS.items():
-        for feed_url in feeds:
-            total += 1
-            try:
-                response = requests.get(feed_url, timeout=10)
-                if response.status_code == 200:
-                    print(f"✅ {category:12} | {feed_url[:50]}...")
-                    working += 1
-                else:
-                    print(f"❌ {category:12} | Статус {response.status_code}")
-            except:
-                print(f"❌ {category:12} | Ошибка подключения")
-    
-    print("-" * 40)
-    print(f"✅ Работает: {working}/{total}")
-    print("-" * 40)
+        print("="*70)
 
 if __name__ == '__main__':
-    try:
-        # Сначала проверяем источники
-        check_rss_feeds()
-        
-        # Запускаем сбор
-        collector = NewsCollector()
-        collector.run()
-        
-    except KeyboardInterrupt:
-        print("\n👋 Остановлено пользователем")
-    except Exception as e:
-        print(f"\n❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
-        traceback.print_exc()
-        sys.exit(1)
+    collector = SuperCollector()
+    collector.run()
