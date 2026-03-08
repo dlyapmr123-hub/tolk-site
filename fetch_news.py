@@ -37,10 +37,11 @@ except ImportError:
     print("✅ BeautifulSoup установлен и импортирован")
 
 # ============ НАСТРОЙКИ ============
-TIMEOUT = 10
+TIMEOUT = 15
 MAX_ARTICLES_PER_FEED = 30
 REQUEST_DELAY = 1
 MAX_IMAGES = 3
+MIN_TEXT_LENGTH = 500  # Минимальная длина текста для сохранения
 
 # ============ RSS ИСТОЧНИКИ ============
 RSS_FEEDS = {
@@ -89,88 +90,176 @@ print(f"🤖 ИИ: {'ВКЛЮЧЕН' if USE_AI else 'ВЫКЛЮЧЕН'}")
 print("=" * 60)
 
 def clean_text(text):
-    """Быстрая очистка текста от мусора"""
+    """Очистка текста от мусора"""
     if not text:
         return ""
     
+    # Удаляем HTML теги
     text = re.sub(r'<[^>]+>', ' ', text)
+    
+    # Декодируем HTML сущности
     text = html.unescape(text)
+    
+    # Удаляем лишние пробелы и переносы
     text = re.sub(r'\s+', ' ', text)
     
+    # Список мусорных фраз для удаления
     garbage_phrases = [
-        'реклама', 'подпишись', 'telegram', 'vk', 'вконтакте', 
-        'youtube', 'instagram', 'cookie', 'читать далее', 
-        'фото:', 'видео:', 'смотрите также', 'по теме',
-        'все права защищены', 'источник:', 'ссылка:'
+        r'Читайте также:.*?(?=\.|$)',
+        r'Фото:.*?(?=\.|$)',
+        r'Видео:.*?(?=\.|$)',
+        r'Смотрите также.*?(?=\.|$)',
+        r'По теме.*?(?=\.|$)',
+        r'Источник:.*?(?=\.|$)',
+        r'Ссылка:.*?(?=\.|$)',
+        r'Подпишись.*?новости',
+        r'Telegram',
+        r'VK',
+        r'Вконтакте',
+        r'YouTube',
+        r'Instagram',
+        r'Twitter',
+        r'Facebook',
+        r'реклама',
+        r'cookie',
+        r'конфиденциальность',
+        r'все права защищены',
+        r'©.*?\d{4}',
     ]
     
-    for phrase in garbage_phrases:
-        text = re.sub(phrase, '', text, flags=re.IGNORECASE)
+    for pattern in garbage_phrases:
+        text = re.sub(pattern, '', text, flags=re.IGNORECASE)
     
+    # Убираем множественные точки
+    text = re.sub(r'\.{3,}', '.', text)
     text = re.sub(r'\.{2,}', '.', text)
+    
+    # Убираем лишние пробелы
     text = re.sub(r'\s+', ' ', text)
     
     return text.strip()
 
-def extract_text_fast(html_content):
-    """Быстрое извлечение текста и картинок"""
+def extract_full_text(html_content, url):
+    """Извлечение ПОЛНОГО текста статьи с картинками"""
     if not html_content:
         return None, []
     
     images = []
     
     try:
+        soup = BeautifulSoup(html_content, 'html.parser')
+        
+        # Удаляем ненужные элементы
+        for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside', 'iframe', 'noscript']):
+            tag.decompose()
+        
+        # Удаляем элементы с рекламой и навигацией
+        for class_name in ['ad', 'ads', 'advertisement', 'banner', 'promo', 'subscribe', 
+                          'menu', 'navigation', 'navbar', 'sidebar', 'comments', 
+                          'share', 'social', 'tags', 'related', 'popular']:
+            for element in soup.find_all(class_=re.compile(class_name, re.I)):
+                element.decompose()
+        
         # Ищем картинки
-        img_matches = re.findall(r'<img[^>]+src="([^">]+)"', html_content)
-        for url in img_matches[:MAX_IMAGES * 3]:
-            if url.startswith('//'):
-                url = 'https:' + url
-            elif url.startswith('/'):
-                continue
-            
-            if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', url.lower()):
-                if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad|reklama)', url.lower()):
-                    images.append(url)
+        for img in soup.find_all('img'):
+            img_url = img.get('src') or img.get('data-src') or img.get('data-original')
+            if img_url:
+                if img_url.startswith('//'):
+                    img_url = 'https:' + img_url
+                elif img_url.startswith('/'):
+                    # Пытаемся построить полный URL
+                    parsed = urlparse(url)
+                    img_url = f"{parsed.scheme}://{parsed.netloc}{img_url}"
+                
+                # Проверяем, что это не иконка
+                if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', img_url.lower()):
+                    if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad)', img_url.lower()):
+                        images.append(img_url)
         
-        # Ищем текст в параграфах
-        p_matches = re.findall(r'<p[^>]*>(.*?)</p>', html_content, re.DOTALL)
+        # Ищем статью
+        article = None
+        
+        # Пробуем найти article
+        article = soup.find('article')
+        
+        # Если нет article, ищем main
+        if not article:
+            article = soup.find('main')
+        
+        # Если нет main, ищем div с классом article или content
+        if not article:
+            article = soup.find('div', class_=re.compile(r'article|post|content|text|story|news-body', re.I))
+        
+        # Если ничего не нашли, берем body
+        if not article:
+            article = soup.find('body')
+        
+        if not article:
+            return None, images[:MAX_IMAGES]
+        
+        # Собираем ВСЕ параграфы
+        paragraphs = article.find_all('p')
+        
+        if not paragraphs:
+            # Если нет параграфов, берем весь текст
+            full_text = article.get_text(separator=' ', strip=True)
+            full_text = clean_text(full_text)
+            
+            if len(full_text) > MIN_TEXT_LENGTH:
+                # Убираем дубликаты картинок
+                unique_images = []
+                seen = set()
+                for img in images:
+                    if img not in seen:
+                        seen.add(img)
+                        unique_images.append(img)
+                
+                print(f"      📝 Найдено текста: {len(full_text)} символов (весь текст)")
+                return full_text, unique_images[:MAX_IMAGES]
+            return None, images[:MAX_IMAGES]
+        
+        # Собираем текст из параграфов
         text_parts = []
-        
-        for p in p_matches[:10]:
-            p_text = re.sub(r'<[^>]+>', ' ', p)
-            p_text = html.unescape(p_text)
-            p_text = re.sub(r'\s+', ' ', p_text).strip()
-            
-            if len(p_text) > 40 and not re.search(r'(реклама|подпишись|vk|telegram)', p_text.lower()):
-                text_parts.append(p_text)
+        for p in paragraphs:
+            p_text = p.get_text(strip=True)
+            if len(p_text) > 30:  # Пропускаем слишком короткие параграфы
+                # Проверяем на мусор
+                if not re.search(r'(реклама|подпишись|telegram|vk|вконтакте)', p_text.lower()):
+                    text_parts.append(p_text)
         
         if text_parts:
             full_text = ' '.join(text_parts)
             full_text = clean_text(full_text)
             
+            # Проверяем длину
+            if len(full_text) < MIN_TEXT_LENGTH:
+                print(f"      ⚠️ Текст слишком короткий: {len(full_text)} символов")
+                return None, images[:MAX_IMAGES]
+            
             # Убираем дубликаты картинок
             unique_images = []
             seen = set()
             for img in images:
-                base_url = img.split('?')[0]
-                if base_url not in seen:
-                    seen.add(base_url)
+                if img not in seen:
+                    seen.add(img)
                     unique_images.append(img)
             
+            print(f"      📝 Найдено текста: {len(full_text)} символов ({len(text_parts)} параграфов)")
             return full_text, unique_images[:MAX_IMAGES]
         
         return None, images[:MAX_IMAGES]
         
     except Exception as e:
+        print(f"      ❌ Ошибка парсинга: {e}")
         return None, images[:MAX_IMAGES]
 
 def fetch_article_data(url):
-    """Загрузка статьи и картинок"""
+    """Загрузка ПОЛНОЙ статьи и картинок"""
     try:
         print(f"    📥 Загрузка: {url[:50]}...")
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
             'Referer': 'https://www.google.com/',
@@ -180,42 +269,48 @@ def fetch_article_data(url):
         response = requests.get(url, headers=headers, timeout=TIMEOUT)
         
         if response.status_code != 200:
+            print(f"    ❌ Ошибка HTTP: {response.status_code}")
             return None, []
         
-        if len(response.text) < 2000:
-            return None, []
+        # Извлекаем полный текст и картинки
+        text, images = extract_full_text(response.text, url)
         
-        text, images = extract_text_fast(response.text)
-        
-        if text and len(text) > 200:
+        if text and len(text) > MIN_TEXT_LENGTH:
             return text, images
         else:
+            print(f"    ⚠️ Не удалось извлечь текст")
             return None, images
         
     except requests.exceptions.Timeout:
+        print(f"    ⏱️ Таймаут")
         return None, []
     except Exception as e:
+        print(f"    ❌ Ошибка: {e}")
         return None, []
 
 def ai_rewrite_text(text, title, category):
     """Перефразирование текста через ИИ"""
-    if not text or len(text) < 200 or not USE_AI:
+    if not text or len(text) < 300 or not USE_AI:
         return text
     
     try:
-        print(f"    🤖 ИИ обрабатывает текст...")
+        print(f"    🤖 ИИ обрабатывает текст ({len(text)} символов)...")
         
-        short_text = text[:800]
+        # Берем достаточную часть текста для ИИ
+        text_for_ai = text[:2000] if len(text) > 2000 else text
         
-        prompt = f"""Перепиши эту новость своими словами, сохранив смысл.
-Напиши кратко, 3-4 предложения, без рекламы и лишней информации.
+        prompt = f"""Перепиши эту новость полностью своими словами, сохранив все важные факты и детали.
+Напиши полноценную статью из 5-7 предложений.
+Убери любую рекламу, ссылки на другие сайты, призывы подписаться.
+Сохрани только суть новости, переформулируй её уникально.
 
 Категория: {category}
 Заголовок: {title}
 
-Текст: {short_text}
+Оригинальный текст:
+{text_for_ai}
 
-Переписанный текст:"""
+Переписанная статья (только текст статьи, без пояснений):"""
         
         headers = {
             "Authorization": f"Bearer {AI_API_KEY}",
@@ -227,23 +322,29 @@ def ai_rewrite_text(text, title, category):
         data = {
             "model": AI_MODEL,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 300
+            "temperature": 0.8,
+            "max_tokens": 1000
         }
         
-        response = requests.post(AI_API_URL, headers=headers, json=data, timeout=15)
+        response = requests.post(AI_API_URL, headers=headers, json=data, timeout=30)
         
         if response.status_code == 200:
             result = response.json()
             rewritten = result["choices"][0]["message"]["content"]
             rewritten = clean_text(rewritten)
             
-            if len(rewritten) > 100:
+            if len(rewritten) > 200:
+                print(f"    ✅ ИИ обработал, {len(rewritten)} символов")
                 return rewritten
-        
-        return text
+            else:
+                print(f"    ⚠️ ИИ вернул слишком короткий текст")
+                return text
+        else:
+            print(f"    ⚠️ Ошибка ИИ: {response.status_code}")
+            return text
         
     except Exception as e:
+        print(f"    ⚠️ Ошибка ИИ: {e}")
         return text
 
 def fetch_and_save():
@@ -276,6 +377,7 @@ def fetch_and_save():
     new_count = 0
     total_processed = 0
     skipped_already_exists = 0
+    no_text_count = 0
     
     for category, feeds in RSS_FEEDS.items():
         print(f"\n📡 {category} ({len(feeds)} источников)")
@@ -302,39 +404,44 @@ def fetch_and_save():
                     
                     print(f"\n  🔍 [{i}/{MAX_ARTICLES_PER_FEED}] {entry.title[:60]}...")
                     
-                    # Загружаем текст и картинки
+                    # Загружаем полный текст и картинки
                     full_text, images = fetch_article_data(entry.link)
                     
+                    # Если не удалось загрузить текст, используем описание из RSS
                     if not full_text:
+                        print(f"    ⚠️ Использую описание из RSS")
                         full_text = entry.get('summary', '') or entry.get('description', '')
                         full_text = re.sub(r'<[^>]+>', '', full_text)
                         full_text = clean_text(full_text)
+                        no_text_count += 1
                     
-                    # Применяем ИИ
-                    if USE_AI and full_text:
+                    # Применяем ИИ к тексту (если он достаточно длинный)
+                    if USE_AI and full_text and len(full_text) > 300:
                         full_text = ai_rewrite_text(full_text, entry.title, category)
                     
-                    # Форматируем текст
+                    # Форматируем текст в HTML
                     if full_text:
-                        sentences = re.split(r'[.!?]+', full_text)
+                        # Разбиваем на предложения для красивого форматирования
+                        sentences = re.split(r'(?<=[.!?])\s+', full_text)
                         content_html = ''
-                        for i, sent in enumerate(sentences[:5]):
+                        for sent in sentences[:8]:  # До 8 предложений
                             sent = sent.strip()
                             if sent:
-                                content_html += f'<p>{sent}.</p>\n'
+                                content_html += f'<p>{sent}</p>\n'
                     else:
                         content_html = f'<p>{entry.title}</p>'
                     
-                    description = full_text[:150] + '...' if full_text and len(full_text) > 150 else (full_text or entry.title)
+                    # Описание для превью
+                    description = full_text[:200] + '...' if full_text and len(full_text) > 200 else (full_text or entry.title)
                     
-                    # Создаем запись (ДАЖЕ ЕСЛИ НЕТ КАРТИНОК!)
+                    # Создаем запись
                     news_item = {
                         'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
-                        'title': entry.title[:150],
+                        'title': entry.title[:200],
                         'description': description,
                         'content': content_html,
                         'category': category,
-                        'images': images,  # Может быть пустым
+                        'images': images,
                         'originalLink': entry.link,
                         'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
                         'timestamp': datetime.now().isoformat()
@@ -345,9 +452,9 @@ def fetch_and_save():
                     new_count += 1
                     
                     if images:
-                        print(f"    ✅ СОХРАНЕНО | Картинок: {len(images)}")
+                        print(f"    ✅ СОХРАНЕНО | Текст: {len(full_text)} символов | Картинок: {len(images)}")
                     else:
-                        print(f"    ✅ СОХРАНЕНО | БЕЗ КАРТИНКИ")
+                        print(f"    ✅ СОХРАНЕНО | Текст: {len(full_text)} символов | БЕЗ КАРТИНКИ")
                     
                     time.sleep(REQUEST_DELAY)
                     
@@ -358,8 +465,8 @@ def fetch_and_save():
     # Сортируем и сохраняем
     all_news.sort(key=lambda x: x['timestamp'], reverse=True)
     
-    if len(all_news) > 200:
-        all_news = all_news[:200]
+    if len(all_news) > 300:  # Увеличили до 300
+        all_news = all_news[:300]
     
     # Сохраняем JSON
     with open(json_path, 'w', encoding='utf-8') as f:
@@ -374,6 +481,7 @@ def fetch_and_save():
         'new': new_count,
         'processed': total_processed,
         'skipped_already_exists': skipped_already_exists,
+        'no_text_count': no_text_count,
         'with_images': sum(1 for item in all_news if item.get('images'))
     }
     
@@ -387,6 +495,7 @@ def fetch_and_save():
     print(f"   Новых добавлено: {new_count}")
     print(f"   Всего обработано: {total_processed}")
     print(f"   Пропущено (уже есть): {skipped_already_exists}")
+    print(f"   Использовано RSS-описаний: {no_text_count}")
     print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
     print(f"{'='*60}\n")
 
