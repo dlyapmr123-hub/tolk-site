@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-ФИНАЛЬНАЯ ВЕРСИЯ - ИСПРАВЛЕНИЕ ВСЕХ ПРОБЛЕМ:
-1. Убираем мусор (com, ру и т.д.)
-2. Исправляем склеенные слова
-3. Правильно парсим ТАСС
+ФИНАЛЬНАЯ ВЕРСИЯ - ИИ ИСПРАВЛЯЕТ ВСЁ
 """
 
 import feedparser
@@ -98,102 +95,8 @@ class TextCleaner:
         text = re.sub(r'Фото:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
         text = re.sub(r'Видео:.*$', '', text, flags=re.IGNORECASE | re.MULTILINE)
         
-        # 4. Убираем множественные пробелы (но не единичные!)
+        # 4. Убираем множественные пробелы
         text = re.sub(r' {2,}', ' ', text)
-        
-        return text.strip()
-    
-    @staticmethod
-    def fix_spaces(text: str) -> str:
-        """Исправляет слипшиеся слова"""
-        # Вставляем пробелы между словами где их нет
-        # Например: "Мироновне" -> "Миронов не"
-        
-        # Проверяем известные случаи
-        known_fixes = {
-            'не': 'не',
-            'на': 'на',
-            'по': 'по',
-            'за': 'за',
-            'в': 'в',
-            'с': 'с',
-            'к': 'к',
-            'у': 'у',
-            'от': 'от',
-            'до': 'до',
-            'из': 'из',
-            'без': 'без',
-            'для': 'для',
-        }
-        
-        # Ищем паттерны вида "словоне" -> "слово не"
-        for word in known_fixes:
-            pattern = rf'([а-я]+)({word})([а-я]+)'
-            text = re.sub(pattern, r'\1 \2 \3', text, flags=re.IGNORECASE)
-            
-            pattern2 = rf'([а-я]+)({word})$'
-            text = re.sub(pattern2, r'\1 \2', text, flags=re.IGNORECASE)
-        
-        return text
-    
-    @staticmethod
-    def clean_article_text(text: str) -> str:
-        """ПОЛНАЯ ОЧИСТКА ТЕКСТА"""
-        if not text:
-            return ""
-        
-        # 1. Удаляем HTML теги
-        text = re.sub(r'<[^>]+>', ' ', text)
-        
-        # 2. Декодируем HTML сущности
-        text = html.unescape(text)
-        
-        # 3. Удаляем мусорные фразы
-        garbage_phrases = [
-            r'Читайте также:.*?(?=\.|$)',
-            r'Фото:.*?(?=\.|$)',
-            r'Видео:.*?(?=\.|$)',
-            r'Смотрите также.*?(?=\.|$)',
-            r'По теме.*?(?=\.|$)',
-            r'Источник:.*?(?=\.|$)',
-            r'Ссылка:.*?(?=\.|$)',
-            r'Telegram',
-            r'VKontakte',
-            r'Вконтакте',
-            r'YouTube',
-            r'Instagram',
-            r'Twitter',
-            r'Facebook',
-            r'©.*?\d{4}',
-            r'Все права защищены',
-            r'18\+',
-            r'16\+',
-            r'12\+',
-        ]
-        
-        for pattern in garbage_phrases:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
-        
-        # 4. Удаляем URL мусор
-        text = TextCleaner.remove_url_garbage(text)
-        
-        # 5. Удаляем лишние пробелы
-        text = re.sub(r'\s+', ' ', text)
-        
-        # 6. Исправляем склеенные слова
-        text = TextCleaner.fix_spaces(text)
-        
-        # 7. Чистим пунктуацию
-        text = re.sub(r'\.{3,}', '.', text)
-        text = re.sub(r'\.{2,}', '.', text)
-        text = re.sub(r'\s+\.', '.', text)
-        text = re.sub(r'\.\s+', '. ', text)
-        
-        # 8. Убираем пробелы перед знаками препинания
-        text = re.sub(r'\s+([,.;:!?])', r'\1', text)
-        
-        # 9. Финальная чистка пробелов
-        text = re.sub(r'\s+', ' ', text)
         
         return text.strip()
 
@@ -257,13 +160,12 @@ class NewsCollector:
                             src = 'https:' + src
                         images.append(src)
             
-            # Ищем текст - СПЕЦИАЛЬНО ДЛЯ ТАСС
+            # Ищем текст
             text_parts = []
             
             # 1. Ищем article
             article = soup.find('article')
             if article:
-                # Для ТАСС ищем все параграфы
                 paragraphs = article.find_all(['p', 'div'], class_=re.compile(r'paragraph|text|content', re.I))
                 for p in paragraphs:
                     text = p.get_text(strip=True)
@@ -278,18 +180,10 @@ class NewsCollector:
                     if len(text) > 50:
                         text_parts.append(text)
             
-            # 3. Для ТАСС ищем специфические классы
-            if not text_parts:
-                tass_paragraphs = soup.find_all('p', class_=re.compile(r'Paragraph|paragraph', re.I))
-                for p in tass_paragraphs:
-                    text = p.get_text(strip=True)
-                    if len(text) > 30:
-                        text_parts.append(text)
-            
             if text_parts:
                 full_text = ' '.join(text_parts)
                 
-                # ОЧИЩАЕМ ТЕКСТ
+                # МИНИМАЛЬНАЯ ОЧИСТКА
                 full_text = TextCleaner.clean_article_text(full_text)
                 
                 # Убираем дубликаты картинок
@@ -315,14 +209,14 @@ class NewsCollector:
             return None, []
     
     def ai_rewrite(self, text: str, title: str) -> str:
-    """ИИ переписывание - исправит все проблемы"""
-    if not CONFIG['USE_AI'] or len(text) < 200:
-        return text
-    
-    try:
-        self.log("ИИ обрабатывает...", "AI")
+        """ИИ переписывание - исправит все проблемы"""
+        if not CONFIG['USE_AI'] or len(text) < 200:
+            return text
         
-        prompt = f"""Перепиши эту новость красивым русским языком.
+        try:
+            self.log("ИИ обрабатывает...", "AI")
+            
+            prompt = f"""Перепиши эту новость красивым русским языком.
 Исправь все проблемы с пробелами, сделай текст грамотным.
 Сохрани все факты, напиши связно (4-5 предложений).
 Убирай различные упоминания о других сайтах с новостями, переписывай весь текст своми словами но сохраняй суть.
@@ -331,33 +225,32 @@ class NewsCollector:
 Текст: {text[:1500]}
 
 Переписанный текст:"""
+            
+            headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
+            data = {
+                "model": CONFIG['AI_MODEL'],
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.7,
+                "max_tokens": 600
+            }
+            
+            response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
+            
+            if response.status_code == 200:
+                result = response.json()
+                rewritten = result["choices"][0]["message"]["content"]
+                # Только базовая чистка пробелов
+                rewritten = re.sub(r'\s+', ' ', rewritten).strip()
+                return rewritten
+        except:
+            pass
         
-        headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
-        data = {
-            "model": CONFIG['AI_MODEL'],
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 600
-        }
-        
-        response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
-        
-        if response.status_code == 200:
-            result = response.json()
-            rewritten = result["choices"][0]["message"]["content"]
-            # Только базовая чистка
-            rewritten = re.sub(r'\s+', ' ', rewritten).strip()
-            return rewritten
-    except:
-        pass
-    
-    return text
+        return text
     
     def run(self):
         print("\n" + "="*70)
         print("🚀 ФИНАЛЬНЫЙ СБОРЩИК НОВОСТЕЙ")
-        print("🧹 С очисткой текста и удалением мусора")
-        print("🔧 Исправлением склеенных слов")
+        print("🧹 Минимальная очистка + ИИ")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
@@ -412,7 +305,7 @@ class NewsCollector:
                         if CONFIG['USE_AI'] and len(full_text) > 200:
                             full_text = self.ai_rewrite(full_text, entry.title)
                         
-                        # Финальная очистка
+                        # Финальная минимальная очистка
                         full_text = TextCleaner.clean_article_text(full_text)
                         
                         # Форматируем в HTML
