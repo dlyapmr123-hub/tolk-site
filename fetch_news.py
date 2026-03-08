@@ -68,7 +68,6 @@ def extract_images_from_entry(entry):
     # Из summary (ищем теги img)
     summary = entry.get('summary', '') or entry.get('description', '')
     if summary:
-        import re
         img_urls = re.findall(r'<img[^>]+src="([^">]+)"', summary)
         for url in img_urls:
             if url.startswith('//'):
@@ -94,7 +93,6 @@ def fetch_article_text(url):
             return None
         
         # Просто ищем текст в HTML
-        import re
         text = response.text
         # Удаляем скрипты и стили
         text = re.sub(r'<script.*?>.*?</script>', '', text, flags=re.DOTALL)
@@ -138,6 +136,7 @@ def fetch_and_save():
     print(f"{'='*60}")
     
     json_path = 'public/news_data_v3.json'
+    version_path = 'public/version.json'
     
     # Загружаем существующие ссылки
     existing_links = set()
@@ -179,7 +178,6 @@ def fetch_and_save():
                     # Получаем описание
                     description = entry.get('summary', '') or entry.get('description', '')
                     if description:
-                        import re
                         description = re.sub(r'<[^>]+>', '', description)
                         description = description[:200]
                     
@@ -226,6 +224,16 @@ def fetch_and_save():
     
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(all_news, f, ensure_ascii=False, indent=2)
+    
+    # Сохраняем версию для сброса кэша
+    version_data = {
+        'version': datetime.now().timestamp(),
+        'updated': datetime.now().isoformat(),
+        'count': len(all_news)
+    }
+    
+    with open(version_path, 'w', encoding='utf-8') as f:
+        json.dump(version_data, f, ensure_ascii=False, indent=2)
     
     print(f"\n{'='*60}")
     print(f"✅ ИТОГИ:")

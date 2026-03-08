@@ -8,7 +8,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(html|js|css|json)",
+        "source": "**/*.json",
         "headers": [
           {
             "key": "Cache-Control",
@@ -25,23 +25,13 @@
         ]
       },
       {
-        "source": "/news_data.json",
+        "source": "**/*.html",
         "headers": [
           {
             "key": "Cache-Control",
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "/article.html",
-        "destination": "/article.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ]
   }

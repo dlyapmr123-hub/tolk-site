@@ -639,14 +639,15 @@
         }
 
         async function loadAllNews() {
-            try {
-                const response = await fetch('/news_data_v2.json');
-                return await response.json();
-            } catch (error) {
-                console.error('Ошибка загрузки новостей:', error);
-                return [];
-            }
-        }
+    try {
+        const version = localStorage.getItem('news_version') || '0';
+        const response = await fetch(`/news_data_v3.json?v=${version}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка загрузки новостей:', error);
+        return [];
+    }
+}
 
         async function loadArticle() {
             const loadingIndicator = document.getElementById('loadingIndicator');

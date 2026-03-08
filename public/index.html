@@ -809,26 +809,37 @@
         let currentPage = 1;
         const perPage = 12;
 
-        // Загрузка новостей из JSON
-        async function loadNewsFromJSON() {
-            try {
-                if (newsCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
-                    return newsCache;
-                }
-                
-               const response = await fetch('/news_data_v3.json');
-                const news = await response.json();
-                
-                news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                newsCache = news;
-                cacheTimestamp = Date.now();
-                return news;
-            } catch (error) {
-                console.error('Ошибка загрузки новостей:', error);
-                return [];
-            }
+        // Загрузка новостей из JSON с версионированием
+async function loadNewsFromJSON() {
+    try {
+        if (newsCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
+            return newsCache;
         }
+        
+        // Добавляем параметр версии для сброса кэша
+        const version = localStorage.getItem('news_version') || '0';
+        const response = await fetch(`/news_data_v3.json?v=${version}`);
+        const news = await response.json();
+        
+        news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Проверяем версию
+        try {
+            const versionResponse = await fetch(`/version.json?v=${Date.now()}`);
+            const versionData = await versionResponse.json();
+            localStorage.setItem('news_version', versionData.version);
+        } catch (e) {
+            // Игнорируем ошибки версии
+        }
+        
+        newsCache = news;
+        cacheTimestamp = Date.now();
+        return news;
+    } catch (error) {
+        console.error('Ошибка загрузки новостей:', error);
+        return [];
+    }
+}
 
         // КУРС ВАЛЮТ
         async function updateCurrencyRates() {
