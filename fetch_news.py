@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-ФИНАЛЬНАЯ ВЕРСИЯ - ЗАГРУЖАЕТ СТРАНИЦЫ И БЕРЕТ ТЕКСТ
+ФИНАЛЬНАЯ ВЕРСИЯ - ИСПРАВЛЕНИЕ ВСЕХ ПРОБЛЕМ:
+1. Убираем рекламу (РИА Новости, Лента.ру и т.д.)
+2. Исправляем пробелы (слова слипаются)
+3. Убираем дубликаты картинок
+4. Чистим текст от мусора
 """
 
 import feedparser
@@ -23,7 +27,7 @@ from bs4 import BeautifulSoup
 # Конфигурация
 CONFIG = {
     'TIMEOUT': 15,
-    'MAX_ARTICLES_PER_FEED': 20,  # Уменьшим для скорости
+    'MAX_ARTICLES_PER_FEED': 20,
     'REQUEST_DELAY': 1,
     'MAX_IMAGES': 3,
     'MIN_TEXT_LENGTH': 200,
@@ -66,8 +70,123 @@ RSS_FEEDS = {
     ]
 }
 
+class TextCleaner:
+    """ОЧИСТКА ТЕКСТА ОТ МУСОРА"""
+    
+    @staticmethod
+    def fix_spaces(text: str) -> str:
+        """Исправляет слипшиеся слова"""
+        # Вставляем пробелы между словами где их нет
+        # Например: "Карпинасделалавыбор" -> "Карпина сделала выбор"
+        text = re.sub(r'([а-яА-Я])([А-Я][а-я])', r'\1 \2', text)
+        text = re.sub(r'([a-zA-Z])([A-Z][a-z])', r'\1 \2', text)
+        return text
+    
+    @staticmethod
+    def remove_garbage(text: str) -> str:
+        """Удаляет рекламу и мусор"""
+        
+        # СПИСОК МУСОРНЫХ ФРАЗ ДЛЯ УДАЛЕНИЯ
+        garbage_phrases = [
+            # Названия источников
+            r'РИА Новости\.?',
+            r'ТАСС\.?',
+            r'Лента\.?ру',
+            r'Интерфакс\.?',
+            r'РБК\.?',
+            r'Газета\.?ру',
+            r'Коммерсантъ\.?',
+            r'Ведомости\.?',
+            r'Известия\.?',
+            r'МК\.?',
+            r'АиФ\.?',
+            r'Life\.?',
+            r'RT\.?',
+            r'Sputnik\.?',
+            
+            # Фразы-паразиты
+            r'Об этом сообщает корреспондент.*?\.',
+            r'Как сообщает.*?\.',
+            r'По информации.*?\.',
+            r'По данным.*?\.',
+            r'Передает.*?\.',
+            r'Со ссылкой на.*?\.',
+            r'Источник сообщает.*?\.',
+            r'Стало известно.*?\.',
+            
+            # Призывы и реклама
+            r'Подпишитесь.*?\.',
+            r'Следите за новостями.*?\.',
+            r'Читайте также.*?\.',
+            r'Смотрите также.*?\.',
+            r'По теме.*?\.',
+            r'Фото:.*?\.',
+            r'Видео:.*?\.',
+            r'Ссылка:.*?\.',
+            r'Источник:.*?\.',
+            
+            # Соцсети
+            r'Telegram.*?канал',
+            r'VKontakte',
+            r'Вконтакте',
+            r'YouTube',
+            r'Instagram',
+            r'Twitter',
+            r'Facebook',
+            
+            # Юридическое
+            r'©.*?\d{4}',
+            r'Все права защищены',
+            r'18\+',
+            r'16\+',
+            r'12\+',
+            r'cookie',
+            r'конфиденциальность',
+            r'политика обработки',
+        ]
+        
+        for pattern in garbage_phrases:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        
+        return text
+    
+    @staticmethod
+    def clean_article_text(text: str) -> str:
+        """ПОЛНАЯ ОЧИСТКА ТЕКСТА"""
+        if not text:
+            return ""
+        
+        # 1. Удаляем HTML теги
+        text = re.sub(r'<[^>]+>', ' ', text)
+        
+        # 2. Декодируем HTML сущности
+        text = html.unescape(text)
+        
+        # 3. Удаляем мусорные фразы
+        text = TextCleaner.remove_garbage(text)
+        
+        # 4. Удаляем лишние пробелы
+        text = re.sub(r'\s+', ' ', text)
+        
+        # 5. Исправляем слипшиеся слова
+        text = TextCleaner.fix_spaces(text)
+        
+        # 6. Чистим пунктуацию
+        text = re.sub(r'\.{3,}', '.', text)
+        text = re.sub(r'\.{2,}', '.', text)
+        text = re.sub(r'\s+\.', '.', text)
+        text = re.sub(r'\.\s+', '. ', text)
+        
+        # 7. Убираем пробелы перед знаками препинания
+        text = re.sub(r'\s+([,.;:!?])', r'\1', text)
+        
+        # 8. Убираем множественные пробелы
+        text = re.sub(r'\s+', ' ', text)
+        
+        return text.strip()
+
 class NewsCollector:
-    """Сборщик новостей с загрузкой страниц"""
+    """Сборщик новостей"""
     
     def __init__(self):
         self.existing_links = set()
@@ -79,171 +198,113 @@ class NewsCollector:
             'text_found': 0,
             'already_exists': 0,
             'with_images': 0,
-            'errors': 0
+            'errors': 0,
+            'duplicate_images_removed': 0
         }
         
-        # Настройка сессии для запросов
+        self.seen_images = set()  # Для отслеживания дубликатов картинок
+        
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
     
     def log(self, message: str, level: str = "INFO"):
         timestamp = datetime.now().strftime('%H:%M:%S')
         emoji = {
             "INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️", 
-            "ERROR": "❌", "LOAD": "📥", "PARSE": "🔍", 
+            "ERROR": "❌", "LOAD": "📥", "CLEAN": "🧹",
             "AI": "🤖", "IMAGE": "📸", "TEXT": "📝"
         }.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
     
+    def get_unique_images(self, images: List[str]) -> List[str]:
+        """Убирает дубликаты картинок"""
+        unique = []
+        for img in images:
+            # Нормализуем URL (убираем параметры)
+            base_url = img.split('?')[0]
+            
+            if base_url not in self.seen_images:
+                self.seen_images.add(base_url)
+                unique.append(img)
+            else:
+                self.stats['duplicate_images_removed'] += 1
+        
+        return unique[:CONFIG['MAX_IMAGES']]
+    
     def extract_text_from_page(self, url: str) -> Tuple[Optional[str], List[str]]:
-        """ЗАГРУЗКА СТРАНИЦЫ И ИЗВЛЕЧЕНИЕ ТЕКСТА"""
+        """Загрузка страницы и извлечение текста"""
         try:
-            self.log(f"Загрузка страницы: {url[:60]}...", "LOAD")
+            self.log(f"Загрузка страницы...", "LOAD")
             
             response = self.session.get(url, timeout=CONFIG['TIMEOUT'])
             if response.status_code != 200:
-                self.log(f"Ошибка HTTP: {response.status_code}", "ERROR")
                 return None, []
             
             self.stats['page_loaded'] += 1
             
-            # Парсим страницу
             soup = BeautifulSoup(response.text, 'html.parser')
             
             # Удаляем мусор
             for tag in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
                 tag.decompose()
             
-            # Ищем КАРТИНКИ
+            # Ищем картинки
             images = []
             for img in soup.find_all('img'):
-                src = img.get('src') or img.get('data-src') or img.get('data-original')
-                if src:
-                    if src.startswith('//'):
-                        src = 'https:' + src
-                    elif src.startswith('/'):
-                        from urllib.parse import urlparse
-                        parsed = urlparse(url)
-                        src = f"{parsed.scheme}://{parsed.netloc}{src}"
-                    
-                    if re.search(r'\.(jpg|jpeg|png|webp|gif)', src.lower()):
-                        if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer)', src.lower()):
-                            images.append(src)
+                src = img.get('src') or img.get('data-src')
+                if src and re.search(r'\.(jpg|jpeg|png|webp)', src.lower()):
+                    if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer)', src.lower()):
+                        if src.startswith('//'):
+                            src = 'https:' + src
+                        images.append(src)
             
-            # Ищем ТЕКСТ
+            # Ищем текст
             text_parts = []
             
-            # 1. Ищем article
-            article = soup.find('article')
+            # Пробуем найти статью
+            article = (soup.find('article') or 
+                      soup.find('main') or 
+                      soup.find('div', class_=re.compile(r'article|content|text|post|news', re.I)))
+            
             if article:
                 paragraphs = article.find_all('p')
-                for p in paragraphs:
+                for p in paragraphs[:15]:
                     text = p.get_text(strip=True)
-                    if len(text) > 30:
+                    if len(text) > 40:
                         text_parts.append(text)
             
-            # 2. Ищем main
+            # Если не нашли, берем все параграфы
             if not text_parts:
-                main = soup.find('main')
-                if main:
-                    paragraphs = main.find_all('p')
-                    for p in paragraphs:
-                        text = p.get_text(strip=True)
-                        if len(text) > 30:
-                            text_parts.append(text)
+                paragraphs = soup.find_all('p')
+                for p in paragraphs[:20]:
+                    text = p.get_text(strip=True)
+                    if len(text) > 50:
+                        text_parts.append(text)
             
-            # 3. Ищем div с контентом
-            if not text_parts:
-                for class_name in ['article', 'content', 'text', 'post', 'news', 'material']:
-                    content = soup.find('div', class_=re.compile(class_name, re.I))
-                    if content:
-                        paragraphs = content.find_all('p')
-                        for p in paragraphs:
-                            text = p.get_text(strip=True)
-                            if len(text) > 30:
-                                text_parts.append(p.get_text(strip=True))
-                        if text_parts:
-                            break
-            
-            # 4. Берем все параграфы body
-            if not text_parts:
-                body = soup.find('body')
-                if body:
-                    paragraphs = body.find_all('p')
-                    for p in paragraphs[:20]:
-                        text = p.get_text(strip=True)
-                        if len(text) > 40:
-                            text_parts.append(text)
-            
-            # Объединяем текст
             if text_parts:
                 full_text = ' '.join(text_parts)
                 
-                # Очистка
-                full_text = re.sub(r'\s+', ' ', full_text)
-                full_text = re.sub(r'Читайте также.*?(?=\.|$)', '', full_text, flags=re.IGNORECASE)
-                full_text = re.sub(r'Фото:.*?(?=\.|$)', '', full_text, flags=re.IGNORECASE)
-                full_text = re.sub(r'Видео:.*?(?=\.|$)', '', full_text, flags=re.IGNORECASE)
+                # ОЧИЩАЕМ ТЕКСТ
+                full_text = TextCleaner.clean_article_text(full_text)
                 
                 # Убираем дубликаты картинок
-                unique_images = []
-                seen = set()
-                for img in images:
-                    if img not in seen:
-                        seen.add(img)
-                        unique_images.append(img)
+                unique_images = self.get_unique_images(images)
                 
-                self.log(f"Текст: {len(full_text)} символов, Картинок: {len(unique_images)}", "TEXT")
-                self.stats['text_found'] += 1
                 if unique_images:
                     self.stats['with_images'] += 1
                 
-                return full_text, unique_images[:CONFIG['MAX_IMAGES']]
+                self.log(f"Текст: {len(full_text)} символов, Картинок: {len(unique_images)}", "TEXT")
+                self.stats['text_found'] += 1
+                
+                return full_text, unique_images
             
             return None, []
             
         except Exception as e:
-            self.log(f"Ошибка загрузки: {e}", "ERROR")
             self.stats['errors'] += 1
             return None, []
-    
-    def extract_text_from_rss(self, entry) -> Optional[str]:
-        """Запасной вариант - текст из RSS"""
-        text_candidates = []
-        
-        # Проверяем все поля
-        for field in ['content', 'content_encoded', 'summary_detail', 'description', 'summary']:
-            if hasattr(entry, field):
-                val = getattr(entry, field)
-                if isinstance(val, list):
-                    for item in val:
-                        if hasattr(item, 'value') and item.value:
-                            text_candidates.append(str(item.value))
-                elif hasattr(val, 'value') and val.value:
-                    text_candidates.append(str(val.value))
-                elif isinstance(val, str):
-                    text_candidates.append(val)
-        
-        # Выбираем самый длинный
-        best_text = None
-        best_len = 0
-        
-        for raw in text_candidates:
-            clean = re.sub(r'<[^>]+>', ' ', raw)
-            clean = html.unescape(clean)
-            clean = re.sub(r'\s+', ' ', clean).strip()
-            
-            if len(clean) > best_len:
-                best_len = len(clean)
-                best_text = clean
-        
-        if best_text and best_len > 100:
-            return best_text
-        return None
     
     def ai_rewrite(self, text: str, title: str) -> str:
         """ИИ переписывание"""
@@ -251,24 +312,23 @@ class NewsCollector:
             return text
         
         try:
-            prompt = f"""Перепиши эту новость своими словами, сохранив все факты.
-Напиши связный текст из 4-5 предложений.
+            self.log("ИИ обрабатывает...", "AI")
+            
+            prompt = f"""Перепиши эту новость своими словами. 
+Сохрани все факты, но убери упоминания других сайтов (РИА, ТАСС, Лента и т.д.).
+Напиши чистый, грамотный текст из 4-5 предложений.
 
 Заголовок: {title}
 Текст: {text[:1500]}
 
-Переписанный текст:"""
+Переписанный текст:"""
             
-            headers = {
-                "Authorization": f"Bearer {CONFIG['AI_API_KEY']}",
-                "Content-Type": "application/json",
-            }
-            
+            headers = {"Authorization": f"Bearer {CONFIG['AI_API_KEY']}"}
             data = {
                 "model": CONFIG['AI_MODEL'],
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.7,
-                "max_tokens": 500
+                "max_tokens": 600
             }
             
             response = requests.post(CONFIG['AI_API_URL'], headers=headers, json=data, timeout=15)
@@ -276,7 +336,7 @@ class NewsCollector:
             if response.status_code == 200:
                 result = response.json()
                 rewritten = result["choices"][0]["message"]["content"]
-                rewritten = re.sub(r'\s+', ' ', rewritten).strip()
+                rewritten = TextCleaner.clean_article_text(rewritten)
                 return rewritten
         except:
             pass
@@ -286,14 +346,15 @@ class NewsCollector:
     def run(self):
         print("\n" + "="*70)
         print("🚀 ФИНАЛЬНЫЙ СБОРЩИК НОВОСТЕЙ")
+        print("🧹 С очисткой текста и удалением рекламы")
+        print("📸 Без дубликатов картинок")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"🤖 ИИ: {'АКТИВЕН' if CONFIG['USE_AI'] else 'ОТКЛЮЧЕН'}")
         print("="*70 + "\n")
         
         os.makedirs('public', exist_ok=True)
         json_path = 'public/news_data_v3.json'
         
-        # Загружаем старые новости
+        # Загружаем старые
         if os.path.exists(json_path):
             try:
                 with open(json_path, 'r', encoding='utf-8') as f:
@@ -301,6 +362,9 @@ class NewsCollector:
                     for item in self.all_news:
                         if item.get('originalLink'):
                             self.existing_links.add(item['originalLink'])
+                        # Собираем уже использованные картинки
+                        for img in item.get('images', []):
+                            self.seen_images.add(img.split('?')[0])
                 self.log(f"Загружено {len(self.all_news)} старых новостей")
             except:
                 self.all_news = []
@@ -327,29 +391,33 @@ class NewsCollector:
                         
                         self.log(f"[{idx}] {entry.title[:70]}...")
                         
-                        # 1. Пробуем загрузить страницу
+                        # Загружаем страницу
                         full_text, images = self.extract_text_from_page(entry.link)
                         
-                        # 2. Если не получилось - берем из RSS
-                        if not full_text:
-                            self.log("Пробую текст из RSS...", "WARNING")
-                            full_text = self.extract_text_from_rss(entry)
-                        
-                        # 3. Если все равно нет текста - используем заголовок
+                        # Если не получилось - используем заголовок
                         if not full_text:
                             full_text = entry.title
-                            self.log("Использую только заголовок", "WARNING")
+                            self.log("Использую заголовок", "WARNING")
                         
                         # Применяем ИИ
                         if CONFIG['USE_AI'] and len(full_text) > 200:
                             full_text = self.ai_rewrite(full_text, entry.title)
                         
+                        # Финальная очистка
+                        full_text = TextCleaner.clean_article_text(full_text)
+                        
                         # Форматируем в HTML
                         sentences = re.split(r'(?<=[.!?])\s+', full_text)
-                        content_html = '\n'.join([f'<p>{s.strip()}</p>' for s in sentences[:6] if s.strip()])
+                        content_html = ''
+                        for s in sentences[:6]:
+                            s = s.strip()
+                            if s:
+                                if not s.endswith(('.', '!', '?')):
+                                    s += '.'
+                                content_html += f'<p>{s}</p>\n'
                         
                         if not content_html:
-                            content_html = f'<p>{full_text[:300]}...</p>'
+                            content_html = f'<p>{full_text[:300]}</p>'
                         
                         # Создаем запись
                         news_item = {
@@ -386,29 +454,17 @@ class NewsCollector:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(self.all_news, f, ensure_ascii=False, indent=2)
         
-        # Сохраняем версию
-        version_data = {
-            'version': datetime.now().timestamp(),
-            'updated': datetime.now().isoformat(),
-            'total': len(self.all_news),
-            'new': self.new_count,
-            'processed': self.total_processed,
-            **self.stats
-        }
-        
-        with open('public/version.json', 'w', encoding='utf-8') as f:
-            json.dump(version_data, f, ensure_ascii=False, indent=2)
-        
         # Итоги
         print("\n" + "="*70)
         print("📊 ИТОГИ РАБОТЫ:")
         print(f"   Всего новостей: {len(self.all_news)}")
         print(f"   Новых добавлено: {self.new_count}")
         print(f"   Всего обработано: {self.total_processed}")
-        print(f"   Уже было в базе: {self.stats['already_exists']}")
+        print(f"   Уже было: {self.stats['already_exists']}")
         print(f"   Страниц загружено: {self.stats['page_loaded']}")
         print(f"   Текст найден: {self.stats['text_found']}")
         print(f"   С картинками: {self.stats['with_images']}")
+        print(f"   Дублей картинок убрано: {self.stats['duplicate_images_removed']}")
         print(f"   Ошибок: {self.stats['errors']}")
         print("="*70)
 
@@ -417,7 +473,7 @@ if __name__ == '__main__':
         collector = NewsCollector()
         collector.run()
     except KeyboardInterrupt:
-        print("\n👋 Остановлено пользователем")
+        print("\n👋 Остановлено")
     except Exception as e:
-        print(f"\n❌ КРИТИЧЕСКАЯ ОШИБКА: {e}")
+        print(f"\n❌ ОШИБКА: {e}")
         traceback.print_exc()
