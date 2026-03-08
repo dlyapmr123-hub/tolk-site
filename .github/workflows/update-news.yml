@@ -29,6 +29,18 @@ jobs:
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
       
+      - name: Создание config.js
+        run: |
+          echo "const FIREBASE_CONFIG = {" > public/config.js
+          echo "  apiKey: \"AIzaSyCVl5UQVPWKEh-sP72pUN08uqTF7VcY43Y\"," >> public/config.js
+          echo "  authDomain: \"tolk-1.firebaseapp.com\"," >> public/config.js
+          echo "  projectId: \"tolk-1\"," >> public/config.js
+          echo "  storageBucket: \"tolk-1.firebasestorage.app\"," >> public/config.js
+          echo "  messagingSenderId: \"79835817899\"," >> public/config.js
+          echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
+          echo "};" >> public/config.js
+          cat public/config.js
+      
       - name: Запуск импортера
         run: python fetch_news.py
       
