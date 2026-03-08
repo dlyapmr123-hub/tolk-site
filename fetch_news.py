@@ -38,19 +38,19 @@ except ImportError:
 
 # ============ НАСТРОЙКИ ============
 TIMEOUT = 10
-MAX_ARTICLES_PER_FEED = 3
+MAX_ARTICLES_PER_FEED = 10  # УВЕЛИЧИЛИ с 3 до 10 - больше просмотров
 REQUEST_DELAY = 1
 MAX_IMAGES = 3
 
 # ============ RSS ИСТОЧНИКИ (ТОЛЬКО НАДЕЖНЫЕ) ============
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',           # RIA.ru - супер быстро
-        'https://tass.ru/rss/v2.xml',                              # ТАСС - быстро
+        'https://ria.ru/export/rss2/politics/index.xml',           # RIA.ru
+        'https://tass.ru/rss/v2.xml',                              # ТАСС
     ],
     'Экономика': [
         'https://ria.ru/export/rss2/economy/index.xml',            # RIA.ru
-        'https://tass.ru/rss/v2.xml',                              # ТАСС (там есть экономика)
+        'https://tass.ru/rss/v2.xml',                              # ТАСС
     ],
     'Технологии': [
         'https://ria.ru/export/rss2/technology/index.xml',         # RIA.ru
@@ -60,7 +60,7 @@ RSS_FEEDS = {
         'https://ria.ru/export/rss2/auto/index.xml',               # RIA.ru
     ],
     'Киберспорт': [
-        'https://www.cybersport.ru/rss',                           # Cybersport.ru - быстро
+        'https://www.cybersport.ru/rss',                           # Cybersport.ru
     ],
     'Культура': [
         'https://ria.ru/export/rss2/culture/index.xml',            # RIA.ru
@@ -131,14 +131,14 @@ def extract_text_fast(html_content):
     try:
         # Ищем картинки
         img_matches = re.findall(r'<img[^>]+src="([^">]+)"', html_content)
-        for url in img_matches[:MAX_IMAGES * 2]:
+        for url in img_matches[:MAX_IMAGES * 3]:  # Увеличили поиск картинок
             if url.startswith('//'):
                 url = 'https:' + url
             elif url.startswith('/'):
-                # Относительный путь пропускаем
+                # Пытаемся построить полный URL
                 continue
             
-            # Проверяем, что это реальная картинка, а не иконка
+            # Проверяем, что это реальная картинка
             if re.search(r'\.(jpg|jpeg|png|webp|gif)(\?|$)', url.lower()):
                 if not re.search(r'(logo|icon|avatar|favicon|pixel|spacer|button|banner|ad|reklama)', url.lower()):
                     images.append(url)
@@ -147,7 +147,7 @@ def extract_text_fast(html_content):
         p_matches = re.findall(r'<p[^>]*>(.*?)</p>', html_content, re.DOTALL)
         text_parts = []
         
-        for p in p_matches[:8]:
+        for p in p_matches[:10]:  # Увеличили до 10 параграфов
             p_text = re.sub(r'<[^>]+>', ' ', p)
             p_text = html.unescape(p_text)
             p_text = re.sub(r'\s+', ' ', p_text).strip()
@@ -288,6 +288,7 @@ def fetch_and_save():
     new_count = 0
     total_processed = 0
     skipped_no_images = 0
+    skipped_already_exists = 0
     
     for category, feeds in RSS_FEEDS.items():
         print(f"\n📡 {category} ({len(feeds)} источников)")
@@ -301,10 +302,15 @@ def fetch_and_save():
                     print(f"  ⚠️ Нет записей")
                     continue
                 
+                entries_count = len(feed.entries)
+                print(f"  📊 Найдено записей: {entries_count}")
+                print(f"  🔍 Просматриваем первые {MAX_ARTICLES_PER_FEED} из {entries_count}")
+                
                 for entry in feed.entries[:MAX_ARTICLES_PER_FEED]:
                     total_processed += 1
                     
                     if entry.link in existing_links:
+                        skipped_already_exists += 1
                         continue
                     
                     print(f"\n  🔍 {entry.title[:60]}...")
@@ -384,6 +390,7 @@ def fetch_and_save():
         'new': new_count,
         'processed': total_processed,
         'skipped_no_images': skipped_no_images,
+        'skipped_already_exists': skipped_already_exists,
         'with_images': sum(1 for item in all_news if item.get('images'))
     }
     
@@ -396,6 +403,7 @@ def fetch_and_save():
     print(f"   Всего новостей: {len(all_news)}")
     print(f"   Новых добавлено: {new_count}")
     print(f"   Всего обработано: {total_processed}")
+    print(f"   Пропущено (уже есть): {skipped_already_exists}")
     print(f"   Пропущено (нет картинок): {skipped_no_images}")
     print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
     print(f"{'='*60}\n")
