@@ -44,17 +44,16 @@ MAX_IMAGES = 3  # Максимум картинок на новость
 
 # ============ RSS ИСТОЧНИКИ (ТОЛЬКО БЫСТРЫЕ) ============
 # ============ RSS ИСТОЧНИКИ (СУПЕР БЫСТРЫЕ) ============
+# ============ RSS ИСТОЧНИКИ (ТОЛЬКО РАБОЧИЕ) ============
 RSS_FEEDS = {
     'Политика': [
-        'https://ria.ru/export/rss2/politics/index.xml',         # Только RIA.ru
+        'https://ria.ru/export/rss2/politics/index.xml',         # RIA.ru - работает
     ],
     'Экономика': [
         'https://ria.ru/export/rss2/economy/index.xml',          # RIA.ru
-        'https://www.rbc.ru/rss/',                                # RBC.ru
     ],
     'Технологии': [
-        'https://ria.ru/export/rss2/technology/index.xml',       # RIA.ru
-        'https://habr.com/ru/rss/news/?fl=ru',                    # Habr.com
+        'https://habr.com/ru/rss/news/?fl=ru',                    # Habr.com - быстро
     ],
     'Авто': [
         'https://ria.ru/export/rss2/auto/index.xml',             # RIA.ru авто
