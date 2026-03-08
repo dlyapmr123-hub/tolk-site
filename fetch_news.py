@@ -35,23 +35,23 @@ CONFIG = {
     'SITE_URL': 'https://tolk-1.web.app'
 }
 
-# РАСШИРЕННЫЕ ИСТОЧНИКИ
+# РАСШИРЕННЫЕ ИСТОЧНИКИ (ТАСС УДАЛЕН - ЗАМЕНЕН НА Interfax)
 RSS_FEEDS = {
     'Политика': [
         'https://lenta.ru/rss/news/politics',
         'https://ria.ru/export/rss2/politics/index.xml',
-        'https://tass.ru/rss/v2.xml',
+        'https://www.interfax.ru/rss.asp',  # Interfax вместо ТАСС
     ],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',
         'https://ria.ru/export/rss2/economy/index.xml',
-        'https://tass.ru/rss/v2.xml',
+        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Технологии': [
         'https://lenta.ru/rss/news/technology',
         'https://ria.ru/export/rss2/technology/index.xml',
-        'https://tass.ru/rss/v2.xml',
         'https://habr.com/ru/rss/news/?fl=ru',
+        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Авто': [
         'https://lenta.ru/rss/news/auto',
@@ -65,13 +65,13 @@ RSS_FEEDS = {
     'Культура': [
         'https://lenta.ru/rss/news/art',
         'https://ria.ru/export/rss2/culture/index.xml',
-        'https://tass.ru/rss/v2.xml',
+        'https://www.interfax.ru/rss.asp',  # Interfax
     ],
     'Спорт': [
         'https://lenta.ru/rss/news/sport',
         'https://ria.ru/export/rss2/sport/index.xml',
-        'https://tass.ru/rss/v2.xml',
         'https://www.championat.com/news/rss/',
+        'https://www.interfax.ru/rss.asp',  # Interfax
     ]
 }
 
