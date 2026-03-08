@@ -13,21 +13,30 @@ import sys
 import traceback
 
 print("=" * 60)
-print("=== УПРОЩЕННЫЙ СБОР НОВОСТЕЙ (RSS + ИИ) ===")
+print("=== СБОР НОВОСТЕЙ (ТОЛЬКО ПРОВЕРЕННЫЕ ИСТОЧНИКИ) ===")
 print(f"Время: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 60)
 
 # ============ НАСТРОЙКИ ============
 MAX_ARTICLES_PER_FEED = 30
-REQUEST_DELAY = 0
 
-# ============ RSS ИСТОЧНИКИ ============
+# ============ ТОЛЬКО РАБОЧИЕ ИСТОЧНИКИ ============
 RSS_FEEDS = {
-    'Политика': ['https://tass.ru/rss/v2.xml'],
-    'Экономика': ['https://tass.ru/rss/v2.xml'],
-    'Технологии': ['https://tass.ru/rss/v2.xml'],
-    'Культура': ['https://tass.ru/rss/v2.xml'],
-    'Спорт': ['https://tass.ru/rss/v2.xml'],
+    'Политика': [
+        'https://ria.ru/export/rss2/politics/index.xml',  # РИА - есть полный текст!
+    ],
+    'Экономика': [
+        'https://ria.ru/export/rss2/economy/index.xml',   # РИА
+    ],
+    'Технологии': [
+        'https://ria.ru/export/rss2/technology/index.xml', # РИА
+    ],
+    'Культура': [
+        'https://ria.ru/export/rss2/culture/index.xml',    # РИА
+    ],
+    'Спорт': [
+        'https://ria.ru/export/rss2/sport/index.xml',      # РИА
+    ],
 }
 
 # ============ НАСТРОЙКИ ИИ ============
@@ -36,11 +45,7 @@ AI_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 AI_MODEL = "gpt-3.5-turbo"
 AI_API_KEY = "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"
 
-if not AI_API_KEY or AI_API_KEY == "sk-or-v1-...":
-    print("⚠️ ВНИМАНИЕ: API ключ не настроен! ИИ будет отключен")
-    USE_AI = False
-else:
-    print(f"✅ API ключ загружен, ИИ активен")
+print(f"✅ API ключ загружен, ИИ активен")
 
 def clean_text(text):
     """Очистка текста"""
@@ -49,7 +54,32 @@ def clean_text(text):
     text = re.sub(r'<[^>]+>', ' ', text)
     text = html.unescape(text)
     text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'Читайте также:.*$', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'Фото:.*$', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'Видео:.*$', '', text, flags=re.IGNORECASE)
     return text.strip()
+
+def get_text_from_entry(entry):
+    """Извлекаем текст из записи RSS"""
+    
+    # У РИА текст лежит в summary (там полная статья!)
+    if hasattr(entry, 'summary'):
+        text = entry.summary
+        # Убираем HTML теги
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = clean_text(text)
+        if len(text) > 100:
+            return text
+    
+    # Если нет summary, пробуем description
+    if hasattr(entry, 'description'):
+        text = entry.description
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = clean_text(text)
+        if len(text) > 100:
+            return text
+    
+    return None
 
 def ai_rewrite_text(text, title):
     """Переписывание текста через ИИ"""
@@ -88,8 +118,32 @@ def ai_rewrite_text(text, title):
             return clean_text(rewritten)
         
         return text
-    except:
+    except Exception as e:
         return text
+
+def get_image_from_entry(entry):
+    """Ищем картинку в записи"""
+    images = []
+    
+    # Ищем в summary
+    if hasattr(entry, 'summary'):
+        img_match = re.search(r'<img[^>]+src="([^">]+)"', entry.summary)
+        if img_match:
+            img_url = img_match.group(1)
+            if img_url.startswith('//'):
+                img_url = 'https:' + img_url
+            images.append(img_url)
+    
+    # Ищем в media:content
+    if hasattr(entry, 'media_content'):
+        for media in entry.media_content:
+            if media.get('url'):
+                url = media['url']
+                if url.startswith('//'):
+                    url = 'https:' + url
+                images.append(url)
+    
+    return images[:3]
 
 def fetch_and_save():
     print(f"\n{'='*60}")
@@ -119,72 +173,83 @@ def fetch_and_save():
     all_news = old_news.copy()
     new_count = 0
     
-    # Берем только одну категорию для теста
-    feed_url = 'https://tass.ru/rss/v2.xml'
+    for category, feeds in RSS_FEEDS.items():
+        print(f"\n📡 {category}")
+        
+        for feed_url in feeds:
+            try:
+                print(f"  📰 RSS: {feed_url}")
+                feed = feedparser.parse(feed_url)
+                
+                if not feed.entries:
+                    print(f"  ⚠️ Нет записей")
+                    continue
+                
+                print(f"  📊 Найдено записей: {len(feed.entries)}")
+                
+                for i, entry in enumerate(feed.entries[:MAX_ARTICLES_PER_FEED]):
+                    if entry.link in existing_links:
+                        continue
+                    
+                    print(f"\n  🔍 [{i+1}] {entry.title[:60]}...")
+                    
+                    # Получаем ТЕКСТ из RSS (у РИА он полный!)
+                    full_text = get_text_from_entry(entry)
+                    
+                    if not full_text:
+                        print(f"    ⚠️ Нет текста в RSS")
+                        continue
+                    
+                    print(f"    📝 Текст: {len(full_text)} символов")
+                    
+                    # Применяем ИИ
+                    if USE_AI and full_text:
+                        rewritten = ai_rewrite_text(full_text, entry.title)
+                        if rewritten and len(rewritten) > 50:
+                            full_text = rewritten
+                            print(f"    🤖 После ИИ: {len(full_text)} символов")
+                    
+                    # Получаем картинки
+                    images = get_image_from_entry(entry)
+                    
+                    # Форматируем текст в параграфы
+                    sentences = full_text.split('. ')
+                    content_html = ''
+                    for sent in sentences[:8]:
+                        if sent.strip():
+                            content_html += f'<p>{sent.strip()}.</p>\n'
+                    
+                    # Создаем запись
+                    news_item = {
+                        'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
+                        'title': entry.title[:200],
+                        'description': full_text[:200] + '...' if len(full_text) > 200 else full_text,
+                        'content': content_html,
+                        'category': category,
+                        'images': images,
+                        'originalLink': entry.link,
+                        'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    
+                    all_news.append(news_item)
+                    existing_links.add(entry.link)
+                    new_count += 1
+                    
+                    if images:
+                        print(f"    ✅ СОХРАНЕНО | Текст: {len(full_text)} символов | Картинок: {len(images)}")
+                    else:
+                        print(f"    ✅ СОХРАНЕНО | Текст: {len(full_text)} символов")
+                    
+            except Exception as e:
+                print(f"  ❌ Ошибка: {e}")
+                continue
     
-    print(f"\n📡 Загрузка RSS...")
-    feed = feedparser.parse(feed_url)
-    
-    if not feed.entries:
-        print("❌ Нет записей в RSS")
-        return
-    
-    print(f"📊 Найдено записей: {len(feed.entries)}")
-    
-    for i, entry in enumerate(feed.entries[:MAX_ARTICLES_PER_FEED]):
-        if entry.link in existing_links:
-            continue
-        
-        print(f"\n  🔍 [{i+1}] {entry.title[:60]}...")
-        
-        # Получаем текст из RSS
-        full_text = entry.get('summary', '') or entry.get('description', '')
-        full_text = re.sub(r'<[^>]+>', '', full_text)
-        full_text = clean_text(full_text)
-        
-        # Применяем ИИ
-        if USE_AI and full_text:
-            rewritten_text = ai_rewrite_text(full_text, entry.title)
-            if rewritten_text and len(rewritten_text) > 50:
-                full_text = rewritten_text
-        
-        # Ищем картинку
-        images = []
-        summary = entry.get('summary', '') or entry.get('description', '')
-        img_match = re.search(r'<img[^>]+src="([^">]+)"', summary)
-        if img_match:
-            img_url = img_match.group(1)
-            if img_url.startswith('//'):
-                img_url = 'https:' + img_url
-            images.append(img_url)
-        
-        # Форматируем
-        content_html = f'<p>{full_text}</p>'
-        
-        # Создаем запись
-        news_item = {
-            'id': hashlib.md5(entry.link.encode()).hexdigest()[:8],
-            'title': entry.title[:200],
-            'description': full_text[:200] + '...',
-            'content': content_html,
-            'category': 'Новости',
-            'images': images,
-            'originalLink': entry.link,
-            'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        all_news.append(news_item)
-        existing_links.add(entry.link)
-        new_count += 1
-        
-        print(f"    ✅ СОХРАНЕНО | Текст: {len(full_text)} символов")
-    
-    # Сохраняем
+    # Сортируем и сохраняем
     all_news.sort(key=lambda x: x['timestamp'], reverse=True)
     
-    if len(all_news) > 200:
-        all_news = all_news[:200]
+    if len(all_news) > 300:
+        all_news = all_news[:300]
     
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(all_news, f, ensure_ascii=False, indent=2)
@@ -193,6 +258,7 @@ def fetch_and_save():
     print(f"✅ ИТОГИ:")
     print(f"   Всего новостей: {len(all_news)}")
     print(f"   Новых добавлено: {new_count}")
+    print(f"   С картинками: {sum(1 for item in all_news if item.get('images'))}")
     print(f"{'='*60}")
 
 if __name__ == '__main__':
