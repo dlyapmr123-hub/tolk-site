@@ -53,9 +53,12 @@ CONFIG = {
 # RSS источники
 RSS_FEEDS = {
     'Политика': [
-        'https://lenta.ru/rss/news/politics',
-        'https://ria.ru/export/rss2/politics/index.xml',
-    ],
+    'https://tass.ru/rss/v2.xml',                          # ТАСС (работает)
+    'https://www.interfax.ru/rss.asp',                      # Interfax (работает)
+    'https://www.rbc.ru/rss/',                              # RBC (работает)
+    'https://iz.ru/export/rss.xml',                         # Известия (работает)
+    'https://www.kommersant.ru/RSS/news.xml',               # Коммерсантъ (работает)
+],
     'Экономика': [
         'https://lenta.ru/rss/news/economics',
         'https://ria.ru/export/rss2/economy/index.xml',
