@@ -1013,7 +1013,14 @@ async function loadNewsFromJSON() {
             gridHtml += `
                 <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
                     <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
+                        onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+    <div class='main-story-content' style='padding: 2rem;'>
+        <span class='story-category'>${item.category}</span>
+        <h2>${item.title.substring(0, 100)}...</h2>
+        <p>${item.description.substring(0, 150)}...</p>
+        <div class='story-meta'>${item.published}</div>
+    </div>
+\`);"
                     <div class="news-content">
                         <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
                         <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
