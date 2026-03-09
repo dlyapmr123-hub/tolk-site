@@ -52,8 +52,7 @@ CONFIG = {
 
 # RSS источники
 RSS_FEEDS = {
-    'Политика': [
-    'https://tass.ru/rss/v2.xml',                          # ТАСС (работает)                    
+    'Политика': [           
     'https://www.rbc.ru/rss/',                              # RBC (работает)
     'https://iz.ru/export/rss.xml',                         # Известия (работает)
     'https://www.kommersant.ru/RSS/news.xml',               # Коммерсантъ (работает)
