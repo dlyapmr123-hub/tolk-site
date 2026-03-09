@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- SEO: Основные мета-теги -->
     <title>ТОЛК — свежие новости России и мира сегодня</title>
     <meta name="description" content="Актуальные новости политики, экономики, спорта, технологий и культуры. Только проверенная информация от надёжных источников. Новости со смыслом.">
     <meta name="keywords" content="новости, свежие новости, новости сегодня, новости России, новости мира, политика, экономика, спорт, технологии">
     <meta name="author" content="ТОЛК">
     <meta name="robots" content="index, follow">
     
-    <!-- SEO: Open Graph для соцсетей -->
     <meta property="og:title" content="ТОЛК — свежие новости России и мира">
     <meta property="og:description" content="Актуальные новости политики, экономики, спорта, технологий и культуры. Новости со смыслом.">
     <meta property="og:type" content="website">
@@ -19,32 +16,20 @@
     <meta property="og:image" content="https://tolk-1.web.app/og-image.jpg">
     <meta property="og:site_name" content="ТОЛК">
     
-    <!-- SEO: Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ТОЛК — свежие новости России и мира">
     <meta name="twitter:description" content="Актуальные новости политики, экономики, спорта, технологий и культуры.">
     <meta name="twitter:image" content="https://tolk-1.web.app/og-image.jpg">
     
-    <!-- Favicon - базовый -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    
-    <!-- Favicon - современные форматы -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    
-    <!-- Для Apple устройств -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    
-    <!-- Манифест для PWA -->
     <link rel="manifest" href="/site.webmanifest">
-    
-    <!-- Цвет темы для браузера -->
     <meta name="theme-color" content="#0f172a">
     <meta name="msapplication-TileColor" content="#0f172a">
-    
-    <!-- SEO: Каноническая ссылка -->
     <link rel="canonical" href="https://tolk-1.web.app">
     
     <script src="/config.js"></script> 
@@ -64,12 +49,6 @@
             --border-color: #e2e8f0;
             --secondary-text: #64748b;
             --hover-bg: #f1f5f9;
-            --placeholder-bg: white;
-            --placeholder-border: #e2e8f0;
-            --placeholder-text: #0f172a;
-            --placeholder-logo: #3b82f6;
-            --placeholder-cat-bg: #f1f5f9;
-            --placeholder-cat-text: #64748b;
             --ticker-bg: white;
             --ticker-text: #0f172a;
             --ticker-span: #3b82f6;
@@ -89,12 +68,6 @@
             --border-color: #1f2937;
             --secondary-text: #9ca3af;
             --hover-bg: #1f2937;
-            --placeholder-bg: #111827;
-            --placeholder-border: #374151;
-            --placeholder-text: #f8fafc;
-            --placeholder-logo: #60a5fa;
-            --placeholder-cat-bg: #1f2937;
-            --placeholder-cat-text: #9ca3af;
             --ticker-bg: #111827;
             --ticker-text: #f8fafc;
             --ticker-span: #60a5fa;
@@ -429,6 +402,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.04);
             transition: all 0.2s, background-color 0.3s ease;
             cursor: pointer;
+            position: relative;
         }
         
         .news-card:hover {
@@ -470,36 +444,6 @@
             margin-top: 0.8rem;
             padding-top: 0.8rem;
             border-top: 1px solid var(--border-color);
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin: 3rem 0;
-            flex-wrap: wrap;
-        }
-        
-        .pagination a, .pagination span {
-            padding: 0.5rem 1rem;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-color);
-            text-decoration: none;
-            transition: all 0.2s, background-color 0.3s ease;
-        }
-        
-        .pagination a:hover {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-        
-        .pagination .current {
-            background: #0f172a;
-            color: white;
-            border-color: #0f172a;
         }
         
         .footer {
@@ -571,17 +515,13 @@
             cursor: not-allowed;
         }
         
-        /* Стили для карточек без картинок */
         .news-card.no-image {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            transition: all 0.3s ease;
         }
         
         .news-card.no-image:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border-color: #3b82f6;
         }
         
@@ -593,13 +533,6 @@
             font-size: 0.8rem;
             margin-bottom: 0.8rem;
             color: #3b82f6;
-            font-weight: 600;
-        }
-        
-        .news-card.no-image h3 {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            line-height: 1.4;
         }
         
         .news-card.no-image p {
@@ -608,32 +541,16 @@
             font-size: 0.9rem;
         }
         
-        .news-card.no-image .card-meta {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        /* Стили для главной новости без картинки */
         .main-story.no-image {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
             border: 1px solid var(--border-color);
         }
         
-        .main-story.no-image .main-story-content {
-            padding: 2rem;
-        }
-        
-        /* Стили для боковых новостей без картинки */
         .side-item.no-image {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
             border: 1px solid var(--border-color);
         }
         
-        /* Темная тема */
         body.dark-mode .news-card.no-image,
         body.dark-mode .main-story.no-image,
         body.dark-mode .side-item.no-image {
@@ -645,13 +562,8 @@
             border-color: #60a5fa;
         }
         
-        /* Полностью скрываем старую заглушку */
-        .placeholder-image,
-        .placeholder-logo,
-        .placeholder-category,
-        .placeholder-message,
-        .placeholder-small {
-            display: none !important;
+        .placeholder-image {
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -761,11 +673,7 @@
         
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         });
 
         const CATEGORIES = ['Политика', 'Экономика', 'Технологии', 'Авто', 'Киберспорт', 'Культура', 'Спорт'];
@@ -777,7 +685,7 @@
         };
 
         function getCategoryEmoji(category) {
-            return CATEGORY_EMOJI[category] || CATEGORY_EMOJI['default'];
+            return CATEGORY_EMOJI[category] || CATEGORY_EMOJI.default;
         }
 
         function formatDate(timestamp) {
@@ -794,10 +702,7 @@
         }
 
         function getNewsImage(item) {
-            if (item.images && item.images.length > 0) {
-                return item.images[0];
-            }
-            return null;
+            return (item.images && item.images.length > 0) ? item.images[0] : null;
         }
 
         let newsCache = null;
@@ -847,11 +752,7 @@
                 try {
                     const btcResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
                     const btcData = await btcResponse.json();
-                    if (btcData.bitcoin) {
-                        document.getElementById('btcRate').textContent = '$' + btcData.bitcoin.usd.toLocaleString();
-                    } else {
-                        document.getElementById('btcRate').textContent = '$65,420';
-                    }
+                    document.getElementById('btcRate').textContent = btcData.bitcoin ? '$' + btcData.bitcoin.usd.toLocaleString() : '$65,420';
                 } catch (btcError) {
                     document.getElementById('btcRate').textContent = '$65,420';
                 }
@@ -869,29 +770,24 @@
 
         async function updateWeather() {
             const apiKey = 'bd5e378503939ddaee76f12ad7a97608';
-            const weatherMsk = document.getElementById('weatherMsk');
-            const weatherSpb = document.getElementById('weatherSpb');
             
             try {
-                const mskResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Moscow,ru&appid=${apiKey}&units=metric&lang=ru`);
-                const mskData = await mskResponse.json();
-                if (mskData.main) {
-                    const temp = Math.round(mskData.main.temp);
-                    const desc = mskData.weather[0].description;
-                    weatherMsk.innerHTML = `🌡️ Москва: ${temp}°C, ${desc}`;
+                const [mskResponse, spbResponse] = await Promise.all([
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Moscow,ru&appid=${apiKey}&units=metric&lang=ru`),
+                    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Saint Petersburg,ru&appid=${apiKey}&units=metric&lang=ru`)
+                ]);
+                
+                if (mskResponse.ok) {
+                    const mskData = await mskResponse.json();
+                    document.getElementById('weatherMsk').innerHTML = `🌡️ Москва: ${Math.round(mskData.main.temp)}°C, ${mskData.weather[0].description}`;
                 }
                 
-                const spbResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Saint Petersburg,ru&appid=${apiKey}&units=metric&lang=ru`);
-                const spbData = await spbResponse.json();
-                if (spbData.main) {
-                    const temp = Math.round(spbData.main.temp);
-                    const desc = spbData.weather[0].description;
-                    weatherSpb.innerHTML = `🌡️ СПб: ${temp}°C, ${desc}`;
+                if (spbResponse.ok) {
+                    const spbData = await spbResponse.json();
+                    document.getElementById('weatherSpb').innerHTML = `🌡️ СПб: ${Math.round(spbData.main.temp)}°C, ${spbData.weather[0].description}`;
                 }
             } catch (error) {
-                console.error('Ошибка загрузки погоды:', error);
-                weatherMsk.innerHTML = '🌡️ Москва: загрузка...';
-                weatherSpb.innerHTML = '🌡️ СПб: загрузка...';
+                console.error('Ошибка погоды:', error);
             }
         }
 
@@ -907,9 +803,7 @@
                 }
                 
                 const allNews = await loadNewsFromJSON();
-                const filteredNews = category 
-                    ? allNews.filter(item => item.category === category)
-                    : allNews;
+                const filteredNews = category ? allNews.filter(item => item.category === category) : allNews;
                 
                 allFilteredNews = filteredNews;
                 currentPage = page;
@@ -918,7 +812,7 @@
                 const paginatedNews = allFilteredNews.slice(start, start + perPage);
                 const totalPages = Math.ceil(allFilteredNews.length / perPage);
                 
-                displayNewsFast(paginatedNews, category, page, totalPages);
+                displayNews(paginatedNews, category, page, totalPages);
                 
                 if (currentPage < totalPages) {
                     preloadNextPage(allFilteredNews, currentPage + 1);
@@ -926,11 +820,11 @@
                 
             } catch (error) {
                 console.error('Ошибка:', error);
-                loadingIndicator.innerHTML = `<div class="error">❌ Ошибка загрузки</div>`;
+                loadingIndicator.innerHTML = '<div class="error">❌ Ошибка загрузки</div>';
             }
         }
 
-        function displayNewsFast(paginatedNews, category, page, totalPages) {
+        function displayNews(paginatedNews, category, page, totalPages) {
             const loadingIndicator = document.getElementById('loadingIndicator');
             const newsGrid = document.getElementById('newsGrid');
             const sectionTitle = document.getElementById('sectionTitle');
@@ -947,21 +841,12 @@
             
             let gridHtml = '';
             paginatedNews.forEach(item => {
-                const hasImage = item.images && item.images.length > 0;
-                const imageUrl = hasImage ? item.images[0] : null;
+                const imageUrl = getNewsImage(item);
                 
-                if (hasImage) {
+                if (imageUrl) {
                     gridHtml += `
                         <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
-                                    <div class='news-content'>
-                                        <div class='card-category'>${getCategoryEmoji(item.category)} ${item.category}</div>
-                                        <h3>${item.title.substring(0, 80)}...</h3>
-                                        <p style='color: var(--secondary-text); margin-bottom: 1rem;'>${item.description || ''}</p>
-                                        <div class='card-meta'><span>${item.published.substring(0, 16)}</span><span>Читать →</span></div>
-                                    </div>
-                                \`);">
+                            <img src="${imageUrl}" alt="${item.category}" loading="lazy">
                             <div class="news-content">
                                 <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
                                 <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
@@ -992,125 +877,101 @@
             newsGrid.innerHTML = gridHtml;
             updateHeroSection(category, page);
             
-            if (page < totalPages) {
-                loadMoreBtn.style.display = 'inline-block';
-                loadMoreBtn.disabled = false;
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
+            loadMoreBtn.style.display = page < totalPages ? 'inline-block' : 'none';
+            loadMoreBtn.disabled = false;
         }
 
         function updateHeroSection(category, page) {
-            if (!category && page === 1 && allFilteredNews.length > 0) {
-                let mainNews = null;
-                let mainNewsIndex = -1;
-                
-                for (let i = 0; i < allFilteredNews.length; i++) {
-                    if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
-                        mainNews = allFilteredNews[i];
-                        mainNewsIndex = i;
-                        break;
-                    }
-                }
-                
-                if (mainNews) {
-                    const sideNews = allFilteredNews
-                        .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
-                        .slice(0, 3);
-                    
-                    const mainImageUrl = mainNews.images[0];
-                    
-                    let heroHtml = `
-                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                            <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
-                                    <div class='main-story-content' style='padding: 2rem;'>
-                                        <span class='story-category'>${mainNews.category}</span>
-                                        <h2>${mainNews.title.substring(0, 100)}...</h2>
-                                        <p>${mainNews.description.substring(0, 150)}...</p>
-                                        <div class='story-meta'>${mainNews.published}</div>
-                                    </div>
-                                \`);">
-                            <div class="main-story-content">
-                                <span class="story-category">${mainNews.category}</span>
-                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                                <p>${mainNews.description.substring(0, 150)}...</p>
-                                <div class="story-meta">${mainNews.published}</div>
-                            </div>
-                        </div>
-                        <div class="side-stories">`;
-                    
-                    sideNews.forEach(item => {
-                        const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
-                        
-                        if (sideImageUrl) {
-                            heroHtml += `
-                                <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                                    <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
-                                         onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
-                                            <div class='side-item-content' style='width: 100%; padding: 1rem;'>
-                                                <div class='card-category' style='margin-bottom: 0.5rem;'>${getCategoryEmoji(item.category)} ${item.category}</div>
-                                                <h3 style='font-size: 1rem; margin-bottom: 0.5rem;'>${item.title.substring(0, 70)}...</h3>
-                                                <div class='time'>${item.published}</div>
-                                            </div>
-                                        \`);">
-                                    <div class="side-item-content">
-                                        <h3>${item.title.substring(0, 50)}...</h3>
-                                        <div class="time">${item.published}</div>
-                                    </div>
-                                </div>
-                            `;
-                        } else {
-                            heroHtml += `
-                                <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
-                                     style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
-                                    <div class="side-item-content" style="width: 100%;">
-                                        <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
-                                        <p style="color: var(--secondary-text); margin-bottom: 0.5rem; font-size: 0.85rem;">${item.description ? item.description.substring(0, 80) + '...' : ''}</p>
-                                        <div class="time" style="font-size: 0.75rem; color: var(--secondary-text);">${item.published}</div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
-                    
-                    heroHtml += '</div>';
-                    document.getElementById('heroSection').innerHTML = heroHtml;
-                } else {
-                    const firstNews = allFilteredNews.slice(0, 4);
-                    
-                    let heroHtml = `
-                        <div class="main-story no-image" onclick="window.location='/article.html?id=${firstNews[0].id}'">
-                            <div class="main-story-content" style="padding: 2rem;">
-                                <span class="story-category">${firstNews[0].category}</span>
-                                <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
-                                <p>${firstNews[0].description.substring(0, 150)}...</p>
-                                <div class="story-meta">${firstNews[0].published}</div>
-                            </div>
-                        </div>
-                        <div class="side-stories">`;
-                    
-                    firstNews.slice(1, 4).forEach(item => {
-                        heroHtml += `
-                            <div class="side-item no-image" onclick="window.location='/article.html?id=${item.id}'" 
-                                 style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
-                                <div class="side-item-content" style="width: 100%;">
-                                    <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                    <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
-                                    <p style="color: var(--secondary-text); margin-bottom: 0.5rem; font-size: 0.85rem;">${item.description ? item.description.substring(0, 80) + '...' : ''}</p>
-                                    <div class="time" style="font-size: 0.75rem;">${item.published}</div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    heroHtml += '</div>';
-                    document.getElementById('heroSection').innerHTML = heroHtml;
-                }
-            } else {
+            if (category || page !== 1 || allFilteredNews.length === 0) {
                 document.getElementById('heroSection').innerHTML = '';
+                return;
             }
+            
+            let mainNews = null;
+            let mainNewsIndex = -1;
+            
+            for (let i = 0; i < allFilteredNews.length; i++) {
+                if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
+                    mainNews = allFilteredNews[i];
+                    mainNewsIndex = i;
+                    break;
+                }
+            }
+            
+            if (!mainNews) {
+                const firstNews = allFilteredNews.slice(0, 4);
+                let heroHtml = `
+                    <div class="main-story no-image" onclick="window.location='/article.html?id=${firstNews[0].id}'">
+                        <div class="main-story-content" style="padding: 2rem;">
+                            <span class="story-category">${firstNews[0].category}</span>
+                            <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
+                            <p>${firstNews[0].description.substring(0, 150)}...</p>
+                            <div class="story-meta">${firstNews[0].published}</div>
+                        </div>
+                    </div>
+                    <div class="side-stories">`;
+                
+                firstNews.slice(1, 4).forEach(item => {
+                    heroHtml += `
+                        <div class="side-item no-image" onclick="window.location='/article.html?id=${item.id}'" style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                            <div class="side-item-content" style="width: 100%;">
+                                <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                <p style="color: var(--secondary-text); margin-bottom: 0.5rem; font-size: 0.85rem;">${item.description ? item.description.substring(0, 80) + '...' : ''}</p>
+                                <div class="time" style="font-size: 0.75rem;">${item.published}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                heroHtml += '</div>';
+                document.getElementById('heroSection').innerHTML = heroHtml;
+                return;
+            }
+            
+            const sideNews = allFilteredNews.filter((item, index) => index !== mainNewsIndex).slice(0, 3);
+            
+            let heroHtml = `
+                <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
+                    <img src="${mainNews.images[0]}" alt="${mainNews.category}" loading="lazy">
+                    <div class="main-story-content">
+                        <span class="story-category">${mainNews.category}</span>
+                        <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
+                        <p>${mainNews.description.substring(0, 150)}...</p>
+                        <div class="story-meta">${mainNews.published}</div>
+                    </div>
+                </div>
+                <div class="side-stories">`;
+            
+            sideNews.forEach(item => {
+                const imageUrl = getNewsImage(item);
+                
+                if (imageUrl) {
+                    heroHtml += `
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
+                            <img src="${imageUrl}" alt="${item.category}" loading="lazy">
+                            <div class="side-item-content">
+                                <h3>${item.title.substring(0, 50)}...</h3>
+                                <div class="time">${item.published}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    heroHtml += `
+                        <div class="side-item no-image" onclick="window.location='/article.html?id=${item.id}'" style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                            <div class="side-item-content" style="width: 100%;">
+                                <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                <p style="color: var(--secondary-text); margin-bottom: 0.5rem; font-size: 0.85rem;">${item.description ? item.description.substring(0, 80) + '...' : ''}</p>
+                                <div class="time" style="font-size: 0.75rem;">${item.published}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            heroHtml += '</div>';
+            document.getElementById('heroSection').innerHTML = heroHtml;
         }
 
         function preloadNextPage(news, nextPage) {
@@ -1119,8 +980,7 @@
                 const nextNews = news.slice(start, start + perPage);
                 nextNews.forEach(item => {
                     if (item.images && item.images.length > 0) {
-                        const img = new Image();
-                        img.src = item.images[0];
+                        new Image().src = item.images[0];
                     }
                 });
             }, 100);
@@ -1138,21 +998,12 @@
             
             let gridHtml = newsGrid.innerHTML;
             nextNews.forEach(item => {
-                const hasImage = item.images && item.images.length > 0;
-                const imageUrl = hasImage ? item.images[0] : null;
+                const imageUrl = getNewsImage(item);
                 
-                if (hasImage) {
+                if (imageUrl) {
                     gridHtml += `
                         <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
-                                    <div class='news-content'>
-                                        <div class='card-category'>${getCategoryEmoji(item.category)} ${item.category}</div>
-                                        <h3>${item.title.substring(0, 80)}...</h3>
-                                        <p style='color: var(--secondary-text); margin-bottom: 1rem;'>${item.description || ''}</p>
-                                        <div class='card-meta'><span>${item.published.substring(0, 16)}</span><span>Читать →</span></div>
-                                    </div>
-                                \`);">
+                            <img src="${imageUrl}" alt="${item.category}" loading="lazy">
                             <div class="news-content">
                                 <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
                                 <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
@@ -1183,12 +1034,8 @@
             newsGrid.innerHTML = gridHtml;
             
             const totalPages = Math.ceil(allFilteredNews.length / perPage);
-            if (currentPage >= totalPages) {
-                loadMoreBtn.style.display = 'none';
-            } else {
-                loadMoreBtn.style.display = 'inline-block';
-                loadMoreBtn.disabled = false;
-            }
+            loadMoreBtn.style.display = currentPage < totalPages ? 'inline-block' : 'none';
+            loadMoreBtn.disabled = false;
         }
 
         function updateNavigation(currentCategory) {
@@ -1199,6 +1046,7 @@
                 const isActive = cat === currentCategory;
                 links += `<a href="/?cat=${cat}" class="nav-link${isActive ? ' active' : ''}">${getCategoryEmoji(cat)} ${cat}</a>`;
             });
+            
             navLinks.innerHTML = links;
         }
 
