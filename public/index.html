@@ -673,10 +673,18 @@
                 font-size: 1.2rem;
             }
         }
-        /* Стили для карточек без картинок */
+       /* Стили для карточек без картинок - убрана заглушка ТОЛК */
 .news-card.no-image {
     background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
-    border: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.news-card.no-image:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
 }
 
 .news-card.no-image .news-content {
@@ -686,32 +694,33 @@
 .news-card.no-image .card-category {
     font-size: 0.8rem;
     margin-bottom: 0.8rem;
+    color: #3b82f6;
+    font-weight: 600;
 }
 
 .news-card.no-image h3 {
     font-size: 1.2rem;
     margin-bottom: 1rem;
+    line-height: 1.4;
 }
 
 .news-card.no-image .card-meta {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 2px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.news-card.no-image::before {
-    content: "📰";
-    font-size: 2rem;
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    opacity: 0.3;
-}
-
-/* Темная тема для карточек без картинок */
+/* Темная тема */
 body.dark-mode .news-card.no-image {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-color: #334155;
+}
+
+body.dark-mode .news-card.no-image:hover {
+    border-color: #60a5fa;
 }
     </style>
 </head>
@@ -979,7 +988,7 @@ async function loadNewsFromJSON() {
             }
         }
 
-        function displayNewsFast(paginatedNews, category, page, totalPages) {
+    function displayNewsFast(paginatedNews, category, page, totalPages) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const newsGrid = document.getElementById('newsGrid');
     const sectionTitle = document.getElementById('sectionTitle');
@@ -1016,13 +1025,13 @@ async function loadNewsFromJSON() {
                 </div>
             `;
         } else {
-            // Карточка БЕЗ картинки (стильный дизайн)
+            // Карточка БЕЗ картинки (убрали надпись ТОЛК)
             gridHtml += `
                 <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
                     <div class="news-content">
                         <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
                         <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
-                        <p style="color: var(--secondary-text); margin-bottom: 1rem;">${item.description}</p>
+                        <p style="color: var(--secondary-text); margin-bottom: 1rem; font-size: 0.9rem;">${item.description || ''}</p>
                         <div class="card-meta">
                             <span>${item.published.substring(0, 16)}</span>
                             <span>Читать →</span>
