@@ -47,10 +47,7 @@
     <!-- SEO: Каноническая ссылка -->
     <link rel="canonical" href="https://tolk-1.web.app">
     
-
- <script src="/config.js"></script> 
-
-
+    <script src="/config.js"></script> 
     
     <style>
         * {
@@ -60,7 +57,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
-        /* Светлая тема (по умолчанию) */
         :root {
             --bg-color: #f8fafc;
             --text-color: #0f172a;
@@ -86,7 +82,6 @@
             --weather-text: #e2e8f0;
         }
         
-        /* Темная тема - СУПЕР ТЕМНАЯ */
         body.dark-mode {
             --bg-color: #030712;
             --text-color: #f8fafc;
@@ -119,7 +114,6 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
         
-        /* Кнопка переключения темы */
         .theme-toggle {
             position: fixed;
             bottom: 20px;
@@ -577,71 +571,6 @@
             cursor: not-allowed;
         }
         
-        /* Стили для заглушек картинок */
-        .placeholder-image {
-            width: 100%;
-            height: 100%;
-            background: var(--placeholder-bg);
-            border: 2px dashed var(--placeholder-border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--placeholder-text);
-            font-family: Arial, sans-serif;
-            transition: all 0.3s ease;
-        }
-        
-        .news-card .placeholder-image {
-            height: 160px;
-        }
-        
-        .main-story .placeholder-image {
-            height: 300px;
-        }
-        
-        .side-item .placeholder-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-        
-        .article .placeholder-image {
-            height: 400px;
-        }
-        
-        .placeholder-logo {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            color: var(--placeholder-logo);
-            letter-spacing: -0.5px;
-        }
-        
-        .placeholder-category {
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--placeholder-cat-text);
-            background: var(--placeholder-cat-bg);
-            padding: 0.2rem 1rem;
-            border-radius: 20px;
-        }
-        
-        .placeholder-small {
-            font-size: 1rem;
-            font-weight: bold;
-            color: var(--placeholder-logo);
-        }
-        
-        .placeholder-message {
-            font-size: 0.8rem;
-            color: var(--secondary-text);
-            margin-top: 0.5rem;
-            font-style: italic;
-        }
-        
         @media (max-width: 768px) {
             .hero {
                 grid-template-columns: 1fr;
@@ -661,10 +590,6 @@
                 justify-content: center;
             }
             
-            .article .placeholder-image {
-                height: 250px;
-            }
-            
             .theme-toggle {
                 bottom: 10px;
                 right: 10px;
@@ -673,59 +598,57 @@
                 font-size: 1.2rem;
             }
         }
-       /* Стили для карточек без картинок - убрана заглушка ТОЛК */
-.news-card.no-image {
-    background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    transition: all 0.3s ease;
-}
-
-.news-card.no-image:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    border-color: #3b82f6;
-}
-
-.news-card.no-image .news-content {
-    padding: 1.5rem;
-}
-
-.news-card.no-image .card-category {
-    font-size: 0.8rem;
-    margin-bottom: 0.8rem;
-    color: #3b82f6;
-    font-weight: 600;
-}
-
-.news-card.no-image h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-}
-
-.news-card.no-image .card-meta {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* Темная тема */
-body.dark-mode .news-card.no-image {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-color: #334155;
-}
-
-body.dark-mode .news-card.no-image:hover {
-    border-color: #60a5fa;
-}
+        
+        .news-card.no-image {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .news-card.no-image:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #3b82f6;
+        }
+        
+        .news-card.no-image .news-content {
+            padding: 1.5rem;
+        }
+        
+        .news-card.no-image .card-category {
+            font-size: 0.8rem;
+            margin-bottom: 0.8rem;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .news-card.no-image h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        
+        .news-card.no-image .card-meta {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.dark-mode .news-card.no-image {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-color: #334155;
+        }
+        
+        body.dark-mode .news-card.no-image:hover {
+            border-color: #60a5fa;
+        }
     </style>
 </head>
 <body>
-    <!-- Кнопка переключения темы -->
     <div class="theme-toggle" id="themeToggle">
         <span class="moon">🌙</span>
         <span class="sun">☀️</span>
@@ -789,16 +712,11 @@ body.dark-mode .news-card.no-image:hover {
     </div>
 
     <script type="module">
-        // Импортируем Firebase из CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         
-        // Конфигурация Firebase загружается из config.js
         const firebaseConfig = FIREBASE_CONFIG;
-        
-        
         const app = initializeApp(firebaseConfig);
 
-        // Переключение темы
         const themeToggle = document.getElementById('themeToggle');
         const savedTheme = localStorage.getItem('theme');
         
@@ -840,7 +758,6 @@ body.dark-mode .news-card.no-image:hover {
             }
         }
 
-        // Функция для получения картинки из новости
         function getNewsImage(item) {
             if (item.images && item.images.length > 0) {
                 return item.images[0];
@@ -848,49 +765,41 @@ body.dark-mode .news-card.no-image:hover {
             return 'placeholder';
         }
 
-        // Кэш для новостей
         let newsCache = null;
         let cacheTimestamp = null;
         const CACHE_DURATION = 5 * 60 * 1000;
 
-        // Переменные для хранения всех новостей и текущей страницы
         let allFilteredNews = [];
         let currentPage = 1;
         const perPage = 12;
 
-        // Загрузка новостей из JSON с версионированием
-async function loadNewsFromJSON() {
-    try {
-        if (newsCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
-            return newsCache;
+        async function loadNewsFromJSON() {
+            try {
+                if (newsCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION)) {
+                    return newsCache;
+                }
+                
+                const version = localStorage.getItem('news_version') || '0';
+                const response = await fetch(`/news_data_v3.json?v=${version}`);
+                const news = await response.json();
+                
+                news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                try {
+                    const versionResponse = await fetch(`/version.json?v=${Date.now()}`);
+                    const versionData = await versionResponse.json();
+                    localStorage.setItem('news_version', versionData.version);
+                } catch (e) {}
+                
+                newsCache = news;
+                cacheTimestamp = Date.now();
+                return news;
+            } catch (error) {
+                console.error('Ошибка загрузки новостей:', error);
+                return [];
+            }
         }
-        
-        // Добавляем параметр версии для сброса кэша
-        const version = localStorage.getItem('news_version') || '0';
-        const response = await fetch(`/news_data_v3.json?v=${version}`);
-        const news = await response.json();
-        
-        news.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Проверяем версию
-        try {
-            const versionResponse = await fetch(`/version.json?v=${Date.now()}`);
-            const versionData = await versionResponse.json();
-            localStorage.setItem('news_version', versionData.version);
-        } catch (e) {
-            // Игнорируем ошибки версии
-        }
-        
-        newsCache = news;
-        cacheTimestamp = Date.now();
-        return news;
-    } catch (error) {
-        console.error('Ошибка загрузки новостей:', error);
-        return [];
-    }
-}
 
-        // КУРС ВАЛЮТ
         async function updateCurrencyRates() {
             try {
                 const cbrResponse = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
@@ -923,7 +832,6 @@ async function loadNewsFromJSON() {
             }
         }
 
-        // ПОГОДА
         async function updateWeather() {
             const apiKey = 'bd5e378503939ddaee76f12ad7a97608';
             const weatherMsk = document.getElementById('weatherMsk');
@@ -952,7 +860,6 @@ async function loadNewsFromJSON() {
             }
         }
 
-        // Загрузка и отображение новостей
         async function loadNews(category = '', page = 1) {
             const loadingIndicator = document.getElementById('loadingIndicator');
             const newsGrid = document.getElementById('newsGrid');
@@ -988,179 +895,187 @@ async function loadNewsFromJSON() {
             }
         }
 
-    function displayNewsFast(paginatedNews, category, page, totalPages) {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const newsGrid = document.getElementById('newsGrid');
-    const sectionTitle = document.getElementById('sectionTitle');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    
-    if (allFilteredNews.length === 0) {
-        loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
-        return;
-    }
-    
-    loadingIndicator.style.display = 'none';
-    newsGrid.style.display = 'grid';
-    sectionTitle.textContent = category || 'Последние новости';
-    
-    let gridHtml = '';
-    paginatedNews.forEach(item => {
-        const hasImage = item.images && item.images.length > 0;
-        const imageUrl = hasImage ? item.images[0] : null;
-        
-        if (hasImage) {
-            // Карточка с картинкой
-            gridHtml += `
-                <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                    <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
-                    <div class="news-content">
-                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                        <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
-                        <div class="card-meta">
-                            <span>${item.published.substring(0, 16)}</span>
-                            <span>→</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            // Карточка БЕЗ картинки (убрали надпись ТОЛК)
-            gridHtml += `
-                <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
-                    <div class="news-content">
-                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                        <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
-                        <p style="color: var(--secondary-text); margin-bottom: 1rem; font-size: 0.9rem;">${item.description || ''}</p>
-                        <div class="card-meta">
-                            <span>${item.published.substring(0, 16)}</span>
-                            <span>Читать →</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    });
-    
-    newsGrid.innerHTML = gridHtml;
-    updateHeroSection(category, page);
-    
-    if (page < totalPages) {
-        loadMoreBtn.style.display = 'inline-block';
-        loadMoreBtn.disabled = false;
-    } else {
-        loadMoreBtn.style.display = 'none';
-    }
-}
-
-    function updateHeroSection(category, page) {
-    // Только для главной страницы
-    if (!category && page === 1 && allFilteredNews.length > 0) {
-        
-        // Ищем ПЕРВУЮ новость С КАРТИНКОЙ для главного блока
-        let mainNews = null;
-        let mainNewsIndex = -1;
-        
-        for (let i = 0; i < allFilteredNews.length; i++) {
-            if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
-                mainNews = allFilteredNews[i];
-                mainNewsIndex = i;
-                break;
+        function displayNewsFast(paginatedNews, category, page, totalPages) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const newsGrid = document.getElementById('newsGrid');
+            const sectionTitle = document.getElementById('sectionTitle');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            
+            if (allFilteredNews.length === 0) {
+                loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
+                return;
             }
-        }
-        
-        // Если нашли новость с картинкой
-        if (mainNews) {
-            // Берем следующие 3 новости (могут быть без картинок)
-            const sideNews = allFilteredNews
-                .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
-                .slice(0, 3);
             
-            const mainImageUrl = mainNews.images[0];
+            loadingIndicator.style.display = 'none';
+            newsGrid.style.display = 'grid';
+            sectionTitle.textContent = category || 'Последние новости';
             
-            let heroHtml = `
-                <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                    <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
-                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
-                    <div class="main-story-content">
-                        <span class="story-category">${mainNews.category}</span>
-                        <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                        <p>${mainNews.description.substring(0, 150)}...</p>
-                        <div class="story-meta">${mainNews.published}</div>
-                    </div>
-                </div>
-                <div class="side-stories">`;
-            
-            // Боковые новости (могут быть без картинок)
-            sideNews.forEach(item => {
-                const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
+            let gridHtml = '';
+            paginatedNews.forEach(item => {
+                const hasImage = item.images && item.images.length > 0;
+                const imageUrl = hasImage ? item.images[0] : null;
                 
-                if (sideImageUrl) {
-                    // С картинкой
-                    heroHtml += `
-                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-small\\'>ТОЛК</div></div>');">
-                            <div class="side-item-content">
-                                <h3>${item.title.substring(0, 50)}...</h3>
-                                <div class="time">${item.published}</div>
+                if (hasImage) {
+                    gridHtml += `
+                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
+                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
+                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+                                    <div class='news-content'>
+                                        <div class='card-category'>${getCategoryEmoji(item.category)} ${item.category}</div>
+                                        <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
+                                        <p style='color: var(--secondary-text); margin-bottom: 1rem;'>${item.description || ''}</p>
+                                        <div class='card-meta'><span>${item.published.substring(0, 16)}</span><span>Читать →</span></div>
+                                    </div>
+                                \`);">
+                            <div class="news-content">
+                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
+                                <div class="card-meta">
+                                    <span>${item.published.substring(0, 16)}</span>
+                                    <span>→</span>
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
-                    // Без картинки - как в категориях
-                    heroHtml += `
-                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
-                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
-                            <div class="side-item-content" style="width: 100%;">
-                                <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3 style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
-                                <div class="time" style="font-size: 0.75rem; color: var(--secondary-text);">${item.published}</div>
+                    gridHtml += `
+                        <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
+                            <div class="news-content">
+                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
+                                <p style="color: var(--secondary-text); margin-bottom: 1rem; font-size: 0.9rem;">${item.description || ''}</p>
+                                <div class="card-meta">
+                                    <span>${item.published.substring(0, 16)}</span>
+                                    <span>Читать →</span>
+                                </div>
                             </div>
                         </div>
                     `;
                 }
             });
             
-            heroHtml += '</div>';
-            document.getElementById('heroSection').innerHTML = heroHtml;
-        } else {
-            // Если нет новостей с картинками - показываем все подряд
-            const firstNews = allFilteredNews.slice(0, 4);
+            newsGrid.innerHTML = gridHtml;
+            updateHeroSection(category, page);
             
-            let heroHtml = `
-                <div class="main-story" onclick="window.location='/article.html?id=${firstNews[0].id}'" 
-                     style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
-                    <div class="main-story-content" style="padding: 2rem;">
-                        <span class="story-category">${firstNews[0].category}</span>
-                        <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
-                        <p>${firstNews[0].description.substring(0, 150)}...</p>
-                        <div class="story-meta">${firstNews[0].published}</div>
-                    </div>
-                </div>
-                <div class="side-stories">`;
-            
-            // Остальные новости
-            firstNews.slice(1, 4).forEach(item => {
-                heroHtml += `
-                    <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
-                         style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
-                        <div class="side-item-content" style="width: 100%;">
-                            <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
-                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
-                            <div class="time" style="font-size: 0.75rem;">${item.published}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            heroHtml += '</div>';
-            document.getElementById('heroSection').innerHTML = heroHtml;
+            if (page < totalPages) {
+                loadMoreBtn.style.display = 'inline-block';
+                loadMoreBtn.disabled = false;
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
         }
-    } else {
-        document.getElementById('heroSection').innerHTML = '';
-    }
-}
+
+        function updateHeroSection(category, page) {
+            if (!category && page === 1 && allFilteredNews.length > 0) {
+                let mainNews = null;
+                let mainNewsIndex = -1;
+                
+                for (let i = 0; i < allFilteredNews.length; i++) {
+                    if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
+                        mainNews = allFilteredNews[i];
+                        mainNewsIndex = i;
+                        break;
+                    }
+                }
+                
+                if (mainNews) {
+                    const sideNews = allFilteredNews
+                        .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
+                        .slice(0, 3);
+                    
+                    const mainImageUrl = mainNews.images[0];
+                    
+                    let heroHtml = `
+                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
+                            <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
+                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+                                    <div class='main-story-content' style='padding: 2rem;'>
+                                        <span class='story-category'>${mainNews.category}</span>
+                                        <h2>${mainNews.title.substring(0, 100)}...</h2>
+                                        <p>${mainNews.description.substring(0, 150)}...</p>
+                                        <div class='story-meta'>${mainNews.published}</div>
+                                    </div>
+                                \`);">
+                            <div class="main-story-content">
+                                <span class="story-category">${mainNews.category}</span>
+                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
+                                <p>${mainNews.description.substring(0, 150)}...</p>
+                                <div class="story-meta">${mainNews.published}</div>
+                            </div>
+                        </div>
+                        <div class="side-stories">`;
+                    
+                    sideNews.forEach(item => {
+                        const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
+                        
+                        if (sideImageUrl) {
+                            heroHtml += `
+                                <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
+                                    <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
+                                         onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+                                            <div class='side-item-content' style='width: 100%;'>
+                                                <div class='card-category' style='margin-bottom: 0.5rem;'>${getCategoryEmoji(item.category)} ${item.category}</div>
+                                                <h3 style='font-size: 1rem;'>${item.title.substring(0, 70)}...</h3>
+                                                <div class='time'>${item.published}</div>
+                                            </div>
+                                        \`);">
+                                    <div class="side-item-content">
+                                        <h3>${item.title.substring(0, 50)}...</h3>
+                                        <div class="time">${item.published}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            heroHtml += `
+                                <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                                     style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                                    <div class="side-item-content" style="width: 100%;">
+                                        <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                        <h3 style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                        <div class="time" style="font-size: 0.75rem; color: var(--secondary-text);">${item.published}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    heroHtml += '</div>';
+                    document.getElementById('heroSection').innerHTML = heroHtml;
+                } else {
+                    const firstNews = allFilteredNews.slice(0, 4);
+                    
+                    let heroHtml = `
+                        <div class="main-story" onclick="window.location='/article.html?id=${firstNews[0].id}'" 
+                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
+                            <div class="main-story-content" style="padding: 2rem;">
+                                <span class="story-category">${firstNews[0].category}</span>
+                                <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
+                                <p>${firstNews[0].description.substring(0, 150)}...</p>
+                                <div class="story-meta">${firstNews[0].published}</div>
+                            </div>
+                        </div>
+                        <div class="side-stories">`;
+                    
+                    firstNews.slice(1, 4).forEach(item => {
+                        heroHtml += `
+                            <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                                 style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                                <div class="side-item-content" style="width: 100%;">
+                                    <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                    <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                    <div class="time" style="font-size: 0.75rem;">${item.published}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    heroHtml += '</div>';
+                    document.getElementById('heroSection').innerHTML = heroHtml;
+                }
+            } else {
+                document.getElementById('heroSection').innerHTML = '';
+            }
+        }
 
         function preloadNextPage(news, nextPage) {
             setTimeout(() => {
@@ -1175,7 +1090,6 @@ async function loadNewsFromJSON() {
             }, 100);
         }
 
-        // Функция для загрузки следующих новостей
         function loadMoreNews() {
             const loadMoreBtn = document.getElementById('loadMoreBtn');
             loadMoreBtn.disabled = true;
@@ -1188,16 +1102,21 @@ async function loadNewsFromJSON() {
             
             let gridHtml = newsGrid.innerHTML;
             nextNews.forEach(item => {
-                const imageUrl = getNewsImage(item);
+                const hasImage = item.images && item.images.length > 0;
+                const imageUrl = hasImage ? item.images[0] : null;
                 
-                if (imageUrl === 'placeholder') {
+                if (hasImage) {
                     gridHtml += `
                         <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-logo">ТОЛК</div>
-                                <div class="placeholder-category">${item.category}</div>
-                                <div class="placeholder-message"></div>
-                            </div>
+                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
+                                 onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+                                    <div class='news-content'>
+                                        <div class='card-category'>${getCategoryEmoji(item.category)} ${item.category}</div>
+                                        <h3>${item.title.substring(0, 80)}...</h3>
+                                        <p style='color: var(--secondary-text);'>${item.description || ''}</p>
+                                        <div class='card-meta'><span>${item.published.substring(0, 16)}</span><span>Читать →</span></div>
+                                    </div>
+                                \`);">
                             <div class="news-content">
                                 <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
                                 <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
@@ -1210,15 +1129,14 @@ async function loadNewsFromJSON() {
                     `;
                 } else {
                     gridHtml += `
-                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
+                        <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
                             <div class="news-content">
                                 <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
+                                <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
+                                <p style="color: var(--secondary-text); margin-bottom: 1rem;">${item.description || ''}</p>
                                 <div class="card-meta">
                                     <span>${item.published.substring(0, 16)}</span>
-                                    <span>→</span>
+                                    <span>Читать →</span>
                                 </div>
                             </div>
                         </div>

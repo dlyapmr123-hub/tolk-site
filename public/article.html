@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <!-- Динамический title для статьи -->
-<title>ТОЛК — свежие новости России и мира сегодня</title>
-
-<!-- Мета-описание для статьи -->
+    <title>ТОЛК — свежие новости России и мира сегодня</title>
     <meta name="description" content="{ОПИСАНИЕ_СТАТЬИ} Читайте подробности на ТОЛК.">
+    <meta property="og:title" content="{ЗАГОЛОВОК_СТАТЬИ} | ТОЛК">
+    <meta property="og:description" content="{ОПИСАНИЕ_СТАТЬИ}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://tolk-1.web.app/article.html?id={ID_СТАТЬИ}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ТОЛК — статья</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#0f172a">
 
-    <!-- Open Graph для статьи -->
+    <meta name="description" content="{ОПИСАНИЕ_СТАТЬИ} Читайте подробности на ТОЛК.">
     <meta property="og:title" content="{ЗАГОЛОВОК_СТАТЬИ} | ТОЛК">
     <meta property="og:description" content="{ОПИСАНИЕ_СТАТЬИ}">
     <meta property="og:type" content="article">
@@ -16,44 +29,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ТОЛК — статья</title>
-    
-    <!-- ========== ДОБАВЬТЕ ЭТУ СЕКЦИЮ ========== -->
-    <!-- Favicon - базовый -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    
-    <!-- Favicon - современные форматы -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    
-    <!-- Для Apple устройств -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    
-    <!-- Манифест для PWA -->
-    <link rel="manifest" href="/site.webmanifest">
-    
-    <!-- Цвет темы для браузера -->
-    <meta name="theme-color" content="#0f172a">
-    <!-- ======================================= -->
+    <script src="/config.js"></script>
 
-<!-- Мета-описание для статьи -->
-<meta name="description" content="{ОПИСАНИЕ_СТАТЬИ} Читайте подробности на ТОЛК.">
-
-<!-- Open Graph для статьи -->
-<meta property="og:title" content="{ЗАГОЛОВОК_СТАТЬИ} | ТОЛК">
-<meta property="og:description" content="{ОПИСАНИЕ_СТАТЬИ}">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://tolk-1.web.app/article.html?id={ID_СТАТЬИ}">
-
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ТОЛК — статья</title>
- <!-- Вставляем конфиг напрямую -->
-
- <script src="/config.js"></script>
-</script>
     <style>
         * {
             margin: 0;
@@ -63,54 +40,54 @@
         }
         
         :root {
-    --bg-color: #f8fafc;
-    --text-color: #0f172a;
-    --card-bg: white;
-    --border-color: #e2e8f0;
-    --secondary-text: #64748b;
-    --hover-bg: #f1f5f9;
-    --placeholder-bg: white;
-    --placeholder-border: #e2e8f0;
-    --placeholder-text: #0f172a;
-    --placeholder-logo: #3b82f6;
-    --placeholder-cat-bg: #f1f5f9;
-    --placeholder-cat-text: #64748b;
-    --ticker-bg: white;
-    --ticker-text: #0f172a;
-    --ticker-span: #3b82f6;
-    --breaking-bg: #f1f5f9;
-    --breaking-text: #0f172a;
-    --footer-bg: #0f172a;
-    --footer-text: #94a3b8;
-    --topbar-bg: #0f172a;        /* ДОБАВИТЬ - темный фон для верхней панели */
-    --topbar-text: #e2e8f0;      /* ДОБАВИТЬ - светлый текст */
-    --weather-text: #e2e8f0;     /* ДОБАВИТЬ - цвет погоды */
-}
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --card-bg: white;
+            --border-color: #e2e8f0;
+            --secondary-text: #64748b;
+            --hover-bg: #f1f5f9;
+            --placeholder-bg: white;
+            --placeholder-border: #e2e8f0;
+            --placeholder-text: #0f172a;
+            --placeholder-logo: #3b82f6;
+            --placeholder-cat-bg: #f1f5f9;
+            --placeholder-cat-text: #64748b;
+            --ticker-bg: white;
+            --ticker-text: #0f172a;
+            --ticker-span: #3b82f6;
+            --breaking-bg: #f1f5f9;
+            --breaking-text: #0f172a;
+            --footer-bg: #0f172a;
+            --footer-text: #94a3b8;
+            --topbar-bg: #0f172a;
+            --topbar-text: #e2e8f0;
+            --weather-text: #e2e8f0;
+        }
         
         body.dark-mode {
-    --bg-color: #0f172a;
-    --text-color: #f1f5f9;
-    --card-bg: #1e293b;
-    --border-color: #334155;
-    --secondary-text: #94a3b8;
-    --hover-bg: #334155;
-    --placeholder-bg: #1e293b;
-    --placeholder-border: #334155;
-    --placeholder-text: #f1f5f9;
-    --placeholder-logo: #60a5fa;
-    --placeholder-cat-bg: #0f172a;
-    --placeholder-cat-text: #94a3b8;
-    --ticker-bg: #1e293b;
-    --ticker-text: #f1f5f9;
-    --ticker-span: #60a5fa;
-    --breaking-bg: #334155;
-    --breaking-text: #f1f5f9;
-    --footer-bg: #0f172a;
-    --footer-text: #94a3b8;
-    --topbar-bg: #0f172a;        /* ДОБАВИТЬ - темный фон */
-    --topbar-text: #94a3b8;      /* ДОБАВИТЬ - текст как в светлой теме */
-    --weather-text: #e2e8f0;     /* ДОБАВИТЬ - цвет погоды */
-}
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --secondary-text: #94a3b8;
+            --hover-bg: #334155;
+            --placeholder-bg: #1e293b;
+            --placeholder-border: #334155;
+            --placeholder-text: #f1f5f9;
+            --placeholder-logo: #60a5fa;
+            --placeholder-cat-bg: #0f172a;
+            --placeholder-cat-text: #94a3b8;
+            --ticker-bg: #1e293b;
+            --ticker-text: #f1f5f9;
+            --ticker-span: #60a5fa;
+            --breaking-bg: #334155;
+            --breaking-text: #f1f5f9;
+            --footer-bg: #0f172a;
+            --footer-text: #94a3b8;
+            --topbar-bg: #0f172a;
+            --topbar-text: #94a3b8;
+            --weather-text: #e2e8f0;
+        }
         
         body {
             background-color: var(--bg-color);
@@ -119,7 +96,6 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
         
-        /* Кнопка переключения темы */
         .theme-toggle {
             position: fixed;
             bottom: 20px;
@@ -158,31 +134,31 @@
         }
         
         .top-bar {
-    background: var(--topbar-bg);
-    color: var(--topbar-text);
-    padding: 0.6rem 2rem;
-    font-size: 0.85rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #1e293b;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.date {
-    color: var(--topbar-text);
-}
-
-.weather span {
-    color: var(--weather-text);
-}
-
-.weather span::before {
-    content: "🌡️";
-    margin-right: 0.3rem;
-    color: #f59e0b;
-}
+            background: var(--topbar-bg);
+            color: var(--topbar-text);
+            padding: 0.6rem 2rem;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .date {
+            color: var(--topbar-text);
+        }
+        
+        .weather span {
+            color: var(--weather-text);
+        }
+        
+        .weather span::before {
+            content: "🌡️";
+            margin-right: 0.3rem;
+            color: #f59e0b;
+        }
         
         .main-nav {
             background: var(--card-bg);
@@ -239,21 +215,21 @@
             color: var(--bg-color);
         }
         
-       .ticker-bar {
-    background: var(--ticker-bg);
-    border-bottom: 1px solid var(--border-color);
-    width: 100%;
-}
-
-.ticker-content {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 0.8rem 2rem;
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-    font-size: 0.9rem;
-}
+        .ticker-bar {
+            background: var(--ticker-bg);
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+        }
+        
+        .ticker-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0.8rem 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+        }
         
         .ticker-item {
             color: var(--ticker-text);
@@ -441,55 +417,9 @@
             transform: translateY(-2px);
         }
         
-        /* Стили для заглушек картинок */
-        .placeholder-image {
-            width: 100%;
-            height: 400px;
-            background: var(--placeholder-bg);
-            border: 2px dashed var(--placeholder-border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--placeholder-text);
-            font-family: Arial, sans-serif;
-            transition: all 0.3s ease;
-        }
-        
-        .placeholder-logo {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            color: var(--placeholder-logo);
-            letter-spacing: -0.5px;
-        }
-        
-        .placeholder-category {
-            font-size: 1.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--placeholder-cat-text);
-            background: var(--placeholder-cat-bg);
-            padding: 0.3rem 1.5rem;
-            border-radius: 30px;
-        }
-        
-        .placeholder-message {
-            font-size: 0.9rem;
-            color: var(--secondary-text);
-            margin-top: 1rem;
-            font-style: italic;
-        }
-        
         @media (max-width: 768px) {
             .article img {
                 height: 250px;
-            }
-            .placeholder-image {
-                height: 250px;
-            }
-            .placeholder-logo {
-                font-size: 2rem;
             }
             .article-content {
                 padding: 1.5rem;
@@ -501,39 +431,37 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* Стили для статьи без картинки */
-.article.no-image {
-    background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
-    border: 2px solid var(--border-color);
-}
-
-.article-content {
-    padding: 2.5rem;
-}
-
-.article-content h1 {
-    font-size: 2.2rem;
-    margin-bottom: 1rem;
-    line-height: 1.3;
-}
-
-.article-text {
-    line-height: 1.8;
-    font-size: 1.1rem;
-}
-
-.article-text p {
-    margin-bottom: 1.5rem;
-}
-
-/* Убираем старые стили для placeholder-image, если они есть */
-.placeholder-image {
-    display: none; /* Скрываем заглушку */
-}
+        
+        .article.no-image {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
+            border: 2px solid var(--border-color);
+        }
+        
+        .article-content {
+            padding: 2.5rem;
+        }
+        
+        .article-content h1 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        
+        .article-text {
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .article-text p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .placeholder-image {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Кнопка переключения темы -->
     <div class="theme-toggle" id="themeToggle">
         <span class="moon">🌙</span>
         <span class="sun">☀️</span>
@@ -557,15 +485,15 @@
             </div>
         </div>
         
-   <div class="ticker-bar" id="currencyTicker">
-    <div class="ticker-content">
-        <span class="ticker-item">USD <span id="usdRate">загрузка...</span></span>
-        <span class="ticker-item">EUR <span id="eurRate">загрузка...</span></span>
-        <span class="ticker-item">CNY <span id="cnyRate">загрузка...</span></span>
-        <span class="ticker-item">BTC <span id="btcRate">загрузка...</span></span>
-        <span class="ticker-item">Brent <span id="brentRate">загрузка...</span></span>
-    </div>
-</div>
+        <div class="ticker-bar" id="currencyTicker">
+            <div class="ticker-content">
+                <span class="ticker-item">USD <span id="usdRate">загрузка...</span></span>
+                <span class="ticker-item">EUR <span id="eurRate">загрузка...</span></span>
+                <span class="ticker-item">CNY <span id="cnyRate">загрузка...</span></span>
+                <span class="ticker-item">BTC <span id="btcRate">загрузка...</span></span>
+                <span class="ticker-item">Brent <span id="brentRate">загрузка...</span></span>
+            </div>
+        </div>
         
         <div class="breaking-news">
             <div class="breaking-content" id="breakingNews"></div>
@@ -594,8 +522,6 @@
         const firebaseConfig = FIREBASE_CONFIG;
         const app = initializeApp(firebaseConfig);
         
-
-        // Переключение темы
         const themeToggle = document.getElementById('themeToggle');
         const savedTheme = localStorage.getItem('theme');
         
@@ -701,15 +627,15 @@
         }
 
         async function loadAllNews() {
-    try {
-        const version = localStorage.getItem('news_version') || '0';
-        const response = await fetch(`/news_data_v3.json?v=${version}`);
-        return await response.json();
-    } catch (error) {
-        console.error('Ошибка загрузки новостей:', error);
-        return [];
-    }
-}
+            try {
+                const version = localStorage.getItem('news_version') || '0';
+                const response = await fetch(`/news_data_v3.json?v=${version}`);
+                return await response.json();
+            } catch (error) {
+                console.error('Ошибка загрузки новостей:', error);
+                return [];
+            }
+        }
 
         async function loadArticle() {
             const loadingIndicator = document.getElementById('loadingIndicator');
@@ -770,42 +696,45 @@
                 
                 let articleHtml = '';
                 
-                // Найдите этот блок в функции loadArticle (примерно строка 350-400)
-// и замените его:
-
-if (articleImage === 'placeholder') {
-    // Статья БЕЗ картинки - убираем заглушку с логотипом
-    articleHtml = `
-        <div class="article-content" style="padding: 2.5rem;">
-            <div class="article-category">${category}</div>
-            <h1>${article.title || 'Без названия'}</h1>
-            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
-            <div class="article-text" style="margin-top: 2rem;">
-                ${articleContent}
-            </div>
-            <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
-                ${relatedHtml}
-            </div>
-        </div>
-    `;
-} else {
-    // Статья с картинкой
-    articleHtml = `
-        <img src="${articleImage}" alt="${category}" 
-             onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${category}</div></div>');">
-        <div class="article-content">
-            <div class="article-category">${category}</div>
-            <h1>${article.title || 'Без названия'}</h1>
-            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
-            <div class="article-text">
-                ${articleContent}
-            </div>
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
-                ${relatedHtml}
-            </div>
-        </div>
-    `;
-}
+                if (articleImage === 'placeholder') {
+                    articleHtml = `
+                        <div class="article-content" style="padding: 2.5rem;">
+                            <div class="article-category">${category}</div>
+                            <h1>${article.title || 'Без названия'}</h1>
+                            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
+                            <div class="article-text" style="margin-top: 2rem;">
+                                ${articleContent}
+                            </div>
+                            <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+                                ${relatedHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    articleHtml = `
+                        <img src="${articleImage}" alt="${category}" 
+                             onerror="this.style.display='none'; this.parentNode.classList.add('no-image'); this.parentNode.innerHTML = \`
+                                <div class='article-content' style='padding: 2.5rem;'>
+                                    <div class='article-category'>${category}</div>
+                                    <h1>${article.title || 'Без названия'}</h1>
+                                    <div class='article-meta'>${article.published || formatDate(article.timestamp)} • ТОЛК</div>
+                                    <div class='article-text' style='margin-top: 2rem;'>${articleContent}</div>
+                                    <div style='margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--border-color);'>${relatedHtml}</div>
+                                </div>
+                            \`);">
+                        <div class="article-content">
+                            <div class="article-category">${category}</div>
+                            <h1>${article.title || 'Без названия'}</h1>
+                            <div class="article-meta">${article.published || formatDate(article.timestamp)} • ТОЛК</div>
+                            <div class="article-text">
+                                ${articleContent}
+                            </div>
+                            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                                ${relatedHtml}
+                            </div>
+                        </div>
+                    `;
+                }
                 
                 articleElement.innerHTML = articleHtml;
                 
