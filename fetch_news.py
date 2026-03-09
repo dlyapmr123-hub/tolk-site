@@ -4,6 +4,7 @@
 """
 ФИНАЛЬНАЯ ВЕРСИЯ - УЛУЧШЕННЫЙ ПАРСИНГ КАРТИНОК
 Специальная обработка для Habr, Lenta, РИА
+Московское время для публикаций
 """
 
 import feedparser
@@ -18,7 +19,7 @@ import traceback
 import uuid
 import warnings
 import urllib3
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 
 import requests
@@ -122,11 +123,23 @@ class NewsCollector:
     def log(self, message: str, level: str = "INFO"):
         timestamp = datetime.now().strftime('%H:%M:%S')
         emoji = {
-            "INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️", 
-            "ERROR": "❌", "LOAD": "📥", "AI": "🤖", 
+            "INFO": "📌", "SUCCESS": "✅", "WARNING": "⚠️",
+            "ERROR": "❌", "LOAD": "📥", "AI": "🤖",
             "IMAGE": "📸", "TEXT": "📝"
         }.get(level, "📌")
         print(f"{emoji} [{timestamp}] {message}")
+    
+    def get_moscow_time(self) -> str:
+        """Возвращает текущее московское время в формате ЧЧ:ММ, ДД.ММ.ГГГГ"""
+        try:
+            # Получаем текущее время в UTC и добавляем 3 часа для Москвы
+            now_utc = datetime.utcnow()
+            moscow_time = now_utc + timedelta(hours=3)
+            return moscow_time.strftime('%H:%M, %d.%m.%Y')
+        except Exception as e:
+            # Если что-то пошло не так, возвращаем локальное время
+            self.log(f"Ошибка получения московского времени: {e}", "WARNING")
+            return datetime.now().strftime('%H:%M, %d.%m.%Y')
     
     def get_gigachat_token(self) -> Optional[str]:
         """Получение токена доступа к GigaChat"""
@@ -433,6 +446,7 @@ class NewsCollector:
         print("\n" + "="*70)
         print("🚀 СБОРЩИК НОВОСТЕЙ (GigaChat)")
         print("📸 Улучшенный парсинг картинок")
+        print("🕐 Московское время для публикаций")
         print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("="*70 + "\n")
         
@@ -499,7 +513,7 @@ class NewsCollector:
                             'category': category,
                             'images': images,
                             'originalLink': entry.link,
-                            'published': datetime.now().strftime('%H:%M, %d.%m.%Y'),
+                            'published': self.get_moscow_time(),  # Московское время
                             'timestamp': datetime.now().isoformat()
                         }
                         
