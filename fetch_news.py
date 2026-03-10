@@ -76,9 +76,8 @@ RSS_FEEDS = {
 ],
 'Киберспорт': [
     'https://www.cybersport.ru/rss',
-    'https://stopgame.ru/rss/news.xml',
-    'https://www.igromania.ru/rss/news.xml',  # Добавить
-    'https://kanobu.ru/rss/',                  # Добавить
+    'https://stopgame.ru/rss/news.xml',  
+    'https://kanobu.ru/rss/',                 
 ],
 'Культура': [
     'https://lenta.ru/rss/news/art',
