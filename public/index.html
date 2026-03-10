@@ -787,6 +787,57 @@ body.dark-mode .news-card.no-image {
             <p>новости со смыслом</p>
         </div>
     </div>
+    
+            <!-- SEO: Информационный блок о сайте -->
+        <div class="seo-description" style="max-width: 1300px; margin: 2rem auto; padding: 2rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-color);">О проекте ТОЛК</h2>
+            <div style="line-height: 1.8; color: var(--secondary-text);">
+                <p style="margin-bottom: 1rem;">ТОЛК — это ваш надежный источник свежих и актуальных новостей. Мы стремимся предоставлять читателям только самую важную и интересную информацию о событиях в России и мире. Наша миссия — делать новости доступными, понятными и полезными для каждого.</p>
+                
+                <p style="margin-bottom: 1rem;">Каждый день мы отбираем для вас главные события из мира политики, экономики, технологий, спорта, авто, киберспорта и культуры. Наша команда использует современные технологии для обработки и подачи материалов, чтобы вы получали качественный контент в удобном формате.</p>
+                
+                <p style="margin-bottom: 1rem;">Мы ценим ваше время и доверие. Все новости на сайте представлены в лаконичной форме с сохранением сути событий. ТОЛК — это всегда свежий взгляд на происходящее вокруг.</p>
+            </div>
+            
+            <!-- Счетчики для наглядности -->
+            <div style="display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">7</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">категорий новостей</div>
+                </div>
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">24/7</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">всегда свежие новости</div>
+                </div>
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">100%</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">качественный контент</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSS для темной темы -->
+        <style>
+            body.dark-mode .seo-description {
+                background: #1e293b;
+                border-color: #334155;
+            }
+            body.dark-mode .seo-description h2 {
+                color: #f8fafc;
+            }
+            body.dark-mode .seo-description p {
+                color: #cbd5e1;
+            }
+            @media (max-width: 768px) {
+                .seo-description {
+                    padding: 1.5rem !important;
+                    margin: 1rem !important;
+                }
+                .seo-description h2 {
+                    font-size: 1.3rem !important;
+                }
+            }
+        </style>
 
     <script type="module">
         // Импортируем Firebase из CDN
