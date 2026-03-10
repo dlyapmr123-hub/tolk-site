@@ -750,7 +750,7 @@ body.dark-mode .news-card.no-image {
         
         <div class="container">
             <div class="section-header">
-                <h2 id="sectionTitle">Последние новости</h2>
+                <h1 id="sectionTitle">Последние новости</h1>
             </div>
             
             <div id="loadingIndicator" class="loading">
@@ -1069,7 +1069,7 @@ async function loadNewsFromJSON() {
                          onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
                     <div class="main-story-content">
                         <span class="story-category">${mainNews.category}</span>
-                        <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
+                        <h1>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h1>
                         <p>${mainNews.description.substring(0, 150)}...</p>
                         <div class="story-meta">${mainNews.published}</div>
                     </div>
@@ -1118,7 +1118,7 @@ async function loadNewsFromJSON() {
                      style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
                     <div class="main-story-content" style="padding: 2rem;">
                         <span class="story-category">${firstNews[0].category}</span>
-                        <h2>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h2>
+                        <h1>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h1>
                         <p>${firstNews[0].description.substring(0, 150)}...</p>
                         <div class="story-meta">${firstNews[0].published}</div>
                     </div>
