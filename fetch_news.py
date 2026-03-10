@@ -48,7 +48,7 @@ CONFIG = {
     # Отключаем проверку SSL для работы в России
     'AI_VERIFY_SSL': False,
     
-    'SITE_URL': 'https://tolk-1.web.app'
+    'SITE_URL': 'https://tolk-news.ru'
 }
 
 # RSS источники
