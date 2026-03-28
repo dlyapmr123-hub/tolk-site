@@ -1,8 +1,9 @@
 {
-  "version": 1772972013.65288,
-  "updated": "2026-03-08T12:13:33.652885",
-  "total": 21,
-  "new": 0,
-  "processed": 15,
-  "failed": 4
+  "version": 1774714174.842526,
+  "updated": "2026-03-28T21:09:34.842529",
+  "total": 164,
+  "new": 164,
+  "processed": 165,
+  "ai_processed": 0,
+  "with_images": 165
 }

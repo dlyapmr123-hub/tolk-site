@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Запрещаем служебные параметры
+Disallow: /*?v=*
+Disallow: /*?cat=*
+Disallow: /*?page=*
+
+Sitemap: https://tolk-news.ru/sitemap.xml

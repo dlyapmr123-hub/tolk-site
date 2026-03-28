@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Фон -->
+  <rect width="100" height="100" rx="20" fill="#0f172a"/>
+  
+  <!-- Буква Т -->
+  <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" 
+        font-weight="bold" fill="white" text-anchor="middle">Т</text>
+  
+  <!-- Акцент сверху (как у ТОЛК) -->
+  <circle cx="75" cy="25" r="8" fill="#3b82f6"/>
+</svg>

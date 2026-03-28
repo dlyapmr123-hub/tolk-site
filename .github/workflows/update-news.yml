@@ -7,39 +7,33 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   update-news:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       
       - name: Установка Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
       - name: Установка зависимостей
         run: |
-          python -m pip install --upgrade pip
           pip install feedparser requests beautifulsoup4 lxml
-          echo "✅ Установлены: feedparser, requests, beautifulsoup4, lxml"
-          pip list | grep -E "feedparser|requests|beautifulsoup4|lxml"
-      
-      - name: Проверка структуры
-        run: |
-          echo "📁 Текущая директория: $(pwd)"
-          ls -la
-          mkdir -p public
-          echo "✅ Папка public создана"
       
       - name: Создание serviceAccountKey.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
-          echo "✅ serviceAccountKey.json создан"
-          ls -la serviceAccountKey.json
       
       - name: Создание config.js
         run: |
@@ -51,66 +45,50 @@ jobs:
           echo "  messagingSenderId: \"79835817899\"," >> public/config.js
           echo "  appId: \"1:79835817899:web:28cd02b155f1d7428754ee\"" >> public/config.js
           echo "};" >> public/config.js
-          echo "✅ config.js создан"
-          cat public/config.js
       
       - name: Запуск импортера
-        run: |
-          echo "🚀 ЗАПУСК fetch_news.py"
-          echo "========================"
-          python fetch_news.py
-          echo "========================"
-          echo "✅ Скрипт завершен"
+        env:
+          GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
+        run: python fetch_news.py
       
-      - name: Проверка результатов
+      # НОВЫЙ ШАГ: Генерация sitemap.xml
+      - name: Генерация Sitemap
+        run: python generate_sitemap.py
+      
+      - name: Проверка создания файлов
         run: |
-          echo "📊 Проверка созданных файлов:"
+          echo "📁 Содержимое public/:"
+          ls -la public/
           if [ -f public/news_data_v3.json ]; then
-            echo "✅ news_data_v3.json существует"
-            echo "   Размер: $(wc -l < public/news_data_v3.json) строк"
-            echo "   Вес: $(du -h public/news_data_v3.json | cut -f1)"
-            echo ""
-            echo "📋 Первые 3 новости:"
-            head -n 20 public/news_data_v3.json
+            echo "✅ news_data_v3.json создан, размер: $(wc -c < public/news_data_v3.json) байт"
           else
             echo "❌ news_data_v3.json НЕ создан!"
-            exit 1
           fi
-          
-          if [ -f public/version.json ]; then
-            echo ""
-            echo "✅ version.json существует"
-            cat public/version.json
+          if [ -f public/sitemap.xml ]; then
+            echo "✅ sitemap.xml создан"
+          else
+            echo "❌ sitemap.xml НЕ создан!"
           fi
       
-      - name: Проверка изменений в Git
-        id: check_changes
+      - name: Настройка Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add public/news_data_v3.json public/version.json
-          
-          if git diff --staged --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "📊 НЕТ новых новостей для коммита"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "📊 ЕСТЬ новые новости!"
-            echo ""
-            echo "📋 Изменения:"
-            git diff --staged --stat
-          fi
       
       - name: Коммит и пуш изменений
-        if: steps.check_changes.outputs.changed == 'true'
         run: |
-          git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
-          git push
-          echo "✅ Изменения отправлены в репозиторий"
+          # Добавляем sitemap.xml в коммит
+          git add public/news_data_v3.json public/version.json public/sitemap.xml || true
+          if ! git diff --staged --quiet; then
+            git commit -m "Автообновление новостей [$(date +'%Y-%m-%d %H:%M')]"
+            git pull --rebase origin main || true
+            git push origin main
+            echo "✅ Изменения отправлены"
+          else
+            echo "ℹ️ Нет изменений для коммита"
+          fi
       
       - name: Деплой на Firebase Hosting
-        if: steps.check_changes.outputs.changed == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

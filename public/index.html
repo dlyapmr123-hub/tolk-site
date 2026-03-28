@@ -1,8 +1,23 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta name="yandex-verification" content="2aeecf49e6a87fc0" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107245133', 'ym');
+
+    ym(107245133, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/107245133" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
     
     <!-- SEO: Основные мета-теги -->
     <title>ТОЛК — свежие новости России и мира сегодня</title>
@@ -15,15 +30,9 @@
     <meta property="og:title" content="ТОЛК — свежие новости России и мира">
     <meta property="og:description" content="Актуальные новости политики, экономики, спорта, технологий и культуры. Новости со смыслом.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://tolk-1.web.app">
-    <meta property="og:image" content="https://tolk-1.web.app/og-image.jpg">
+    <meta property="og:url" content="https://tolk-news.ru">
+<meta property="og:image" content="https://tolk-news.ru/og-image.jpg">
     <meta property="og:site_name" content="ТОЛК">
-    
-    <!-- SEO: Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ТОЛК — свежие новости России и мира">
-    <meta name="twitter:description" content="Актуальные новости политики, экономики, спорта, технологий и культуры.">
-    <meta name="twitter:image" content="https://tolk-1.web.app/og-image.jpg">
     
     <!-- Favicon - базовый -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -45,7 +54,7 @@
     <meta name="msapplication-TileColor" content="#0f172a">
     
     <!-- SEO: Каноническая ссылка -->
-    <link rel="canonical" href="https://tolk-1.web.app">
+    <link rel="canonical" href="https://tolk-news.ru">
     
 
  <script src="/config.js"></script> 
@@ -673,6 +682,46 @@
                 font-size: 1.2rem;
             }
         }
+        /* Стили для карточек без картинок */
+.news-card.no-image {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);
+    border: 2px solid var(--border-color);
+}
+
+.news-card.no-image .news-content {
+    padding: 1.5rem;
+}
+
+.news-card.no-image .card-category {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.news-card.no-image h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.news-card.no-image .card-meta {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.news-card.no-image::before {
+    content: "📰";
+    font-size: 2rem;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    opacity: 0.3;
+}
+
+/* Темная тема для карточек без картинок */
+body.dark-mode .news-card.no-image {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+}
     </style>
 </head>
 <body>
@@ -716,7 +765,7 @@
         
         <div class="container">
             <div class="section-header">
-                <h2 id="sectionTitle">Последние новости</h2>
+                <h1 id="sectionTitle">Последние новости</h1>
             </div>
             
             <div id="loadingIndicator" class="loading">
@@ -738,6 +787,56 @@
             <p>новости со смыслом</p>
         </div>
     </div>
+    
+                    <!-- SEO: Информационный блок о сайте -->
+        <div class="seo-description" style="max-width: 1300px; margin: 2rem auto; padding: 2rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-color);">О проекте ТОЛК</h2>
+            <div style="line-height: 1.8; color: var(--secondary-text);">
+                <p style="margin-bottom: 1rem;">ТОЛК — это ваш надежный источник свежих и актуальных новостей. Мы стремимся предоставлять читателям только самую важную и интересную информацию о событиях в России и мире. Наша миссия — делать новости доступными, понятными и полезными для каждого.</p>
+                
+                <p style="margin-bottom: 1rem;">Каждый день мы отбираем для вас главные события из мира политики, экономики, технологий, спорта, авто, киберспорта и культуры. Наша команда использует современные технологии для обработки и подачи материалов, чтобы вы получали качественный контент в удобном формате.</p>
+                
+                <p style="margin-bottom: 1rem;">Мы ценим ваше время и доверие. Все новости на сайте представлены в лаконичной форме с сохранением сути событий. ТОЛК — это всегда свежий взгляд на происходящее вокруг.</p>
+            </div>
+            
+            <!-- Счетчики для наглядности -->
+            <div style="display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">7</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">категорий новостей</div>
+                </div>
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">24/7</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">всегда свежие новости</div>
+                </div>
+                <div style="flex: 1; min-width: 150px; text-align: center; padding: 1rem; background: var(--hover-bg); border-radius: 8px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">100%</div>
+                    <div style="font-size: 0.9rem; color: var(--secondary-text);">качественный контент</div>
+                </div>
+            </div>
+        </div>
+
+    <style>
+            body.dark-mode .seo-description {
+                background: #1e293b;
+                border-color: #334155;
+            }
+            body.dark-mode .seo-description h2 {
+                color: #f8fafc;
+            }
+            body.dark-mode .seo-description p {
+                color: #cbd5e1;
+            }
+            @media (max-width: 768px) {
+                .seo-description {
+                    padding: 1.5rem !important;
+                    margin: 1rem !important;
+                }
+                .seo-description h2 {
+                    font-size: 1.3rem !important;
+                }
+            }
+        </style>
 
     <script type="module">
         // Импортируем Firebase из CDN
@@ -939,150 +1038,179 @@ async function loadNewsFromJSON() {
             }
         }
 
-        // Функция быстрого отображения
         function displayNewsFast(paginatedNews, category, page, totalPages) {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const newsGrid = document.getElementById('newsGrid');
-            const sectionTitle = document.getElementById('sectionTitle');
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            
-            if (allFilteredNews.length === 0) {
-                loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
-                return;
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const newsGrid = document.getElementById('newsGrid');
+    const sectionTitle = document.getElementById('sectionTitle');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    
+    if (allFilteredNews.length === 0) {
+        loadingIndicator.innerHTML = '<div class="error">Новостей пока нет</div>';
+        return;
+    }
+    
+    loadingIndicator.style.display = 'none';
+    newsGrid.style.display = 'grid';
+    sectionTitle.textContent = category || 'Последние новости';
+    
+    let gridHtml = '';
+    paginatedNews.forEach(item => {
+        const hasImage = item.images && item.images.length > 0;
+        const imageUrl = hasImage ? item.images[0] : null;
+        
+        if (hasImage) {
+            // Карточка с картинкой
+            gridHtml += `
+                <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
+                    <img src="${imageUrl}" alt="${item.category}" loading="lazy"
+                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
+                    <div class="news-content">
+                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                        <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
+                        <div class="card-meta">
+                            <span>${item.published.substring(0, 16)}</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Карточка БЕЗ картинки (стильный дизайн)
+            gridHtml += `
+                <div class="news-card no-image" onclick="window.location='/article.html?id=${item.id}'">
+                    <div class="news-content">
+                        <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
+                        <h3>${item.title.substring(0, 80)}${item.title.length > 80 ? '...' : ''}</h3>
+                        <p style="color: var(--secondary-text); margin-bottom: 1rem;">${item.description}</p>
+                        <div class="card-meta">
+                            <span>${item.published.substring(0, 16)}</span>
+                            <span>Читать →</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    newsGrid.innerHTML = gridHtml;
+    updateHeroSection(category, page);
+    
+    if (page < totalPages) {
+        loadMoreBtn.style.display = 'inline-block';
+        loadMoreBtn.disabled = false;
+    } else {
+        loadMoreBtn.style.display = 'none';
+    }
+}
+
+    function updateHeroSection(category, page) {
+    // Только для главной страницы
+    if (!category && page === 1 && allFilteredNews.length > 0) {
+        
+        // Ищем ПЕРВУЮ новость С КАРТИНКОЙ для главного блока
+        let mainNews = null;
+        let mainNewsIndex = -1;
+        
+        for (let i = 0; i < allFilteredNews.length; i++) {
+            if (allFilteredNews[i].images && allFilteredNews[i].images.length > 0) {
+                mainNews = allFilteredNews[i];
+                mainNewsIndex = i;
+                break;
             }
+        }
+        
+        // Если нашли новость с картинкой
+        if (mainNews) {
+            // Берем следующие 3 новости (могут быть без картинок)
+            const sideNews = allFilteredNews
+                .filter((item, index) => index !== mainNewsIndex && index < mainNewsIndex + 4)
+                .slice(0, 3);
             
-            loadingIndicator.style.display = 'none';
-            newsGrid.style.display = 'grid';
-            sectionTitle.textContent = category || 'Последние новости';
+            const mainImageUrl = mainNews.images[0];
             
-            let gridHtml = '';
-            paginatedNews.forEach(item => {
-                const imageUrl = getNewsImage(item);
+            let heroHtml = `
+                <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
+                    <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
+                         onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
+                    <div class="main-story-content">
+                        <span class="story-category">${mainNews.category}</span>
+                        <h1>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h1>
+                        <p>${mainNews.description.substring(0, 150)}...</p>
+                        <div class="story-meta">${mainNews.published}</div>
+                    </div>
+                </div>
+                <div class="side-stories">`;
+            
+            // Боковые новости (могут быть без картинок)
+            sideNews.forEach(item => {
+                const sideImageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
                 
-                if (imageUrl === 'placeholder') {
-                    gridHtml += `
-                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-logo">ТОЛК</div>
-                                <div class="placeholder-category">${item.category}</div>
-                                <div class="placeholder-message"></div>
-                            </div>
-                            <div class="news-content">
-                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
-                                <div class="card-meta">
-                                    <span>${item.published.substring(0, 16)}</span>
-                                    <span>→</span>
-                                </div>
+                if (sideImageUrl) {
+                    // С картинкой
+                    heroHtml += `
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
+                            <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
+                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-small\\'>ТОЛК</div></div>');">
+                            <div class="side-item-content">
+                                <h3>${item.title.substring(0, 50)}...</h3>
+                                <div class="time">${item.published}</div>
                             </div>
                         </div>
                     `;
                 } else {
-                    gridHtml += `
-                        <div class="news-card" onclick="window.location='/article.html?id=${item.id}'">
-                            <img src="${imageUrl}" alt="${item.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${item.category}</div></div>');">
-                            <div class="news-content">
-                                <div class="card-category">${getCategoryEmoji(item.category)} ${item.category}</div>
-                                <h3>${item.title.substring(0, 60)}${item.title.length > 60 ? '...' : ''}</h3>
-                                <div class="card-meta">
-                                    <span>${item.published.substring(0, 16)}</span>
-                                    <span>→</span>
-                                </div>
+                    // Без картинки - как в категориях
+                    heroHtml += `
+                        <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                             style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                            <div class="side-item-content" style="width: 100%;">
+                                <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                                <h3 style="font-size: 1rem; margin-bottom: 0.5rem; line-height: 1.4;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                                <div class="time" style="font-size: 0.75rem; color: var(--secondary-text);">${item.published}</div>
                             </div>
                         </div>
                     `;
                 }
             });
             
-            newsGrid.innerHTML = gridHtml;
-            updateHeroSection(category, page);
+            heroHtml += '</div>';
+            document.getElementById('heroSection').innerHTML = heroHtml;
+        } else {
+            // Если нет новостей с картинками - показываем все подряд
+            const firstNews = allFilteredNews.slice(0, 4);
             
-            if (page < totalPages) {
-                loadMoreBtn.style.display = 'inline-block';
-                loadMoreBtn.disabled = false;
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-        }
-
-        function updateHeroSection(category, page) {
-            if (!category && page === 1 && allFilteredNews.length > 0) {
-                const mainNews = allFilteredNews[0];
-                const sideNews = allFilteredNews.slice(1, 4);
-                
-                const mainImageUrl = getNewsImage(mainNews);
-                
-                let heroHtml = '';
-                
-                if (mainImageUrl === 'placeholder') {
-                    heroHtml += `
-                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                            <div class="placeholder-image">
-                                <div class="placeholder-logo">ТОЛК</div>
-                                <div class="placeholder-category">${mainNews.category}</div>
-                                <div class="placeholder-message"></div>
-                            </div>
-                            <div class="main-story-content">
-                                <span class="story-category">${mainNews.category}</span>
-                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                                <p>${mainNews.description.substring(0, 150)}...</p>
-                                <div class="story-meta">${mainNews.published}</div>
-                            </div>
+            let heroHtml = `
+                <div class="main-story" onclick="window.location='/article.html?id=${firstNews[0].id}'" 
+                     style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%);">
+                    <div class="main-story-content" style="padding: 2rem;">
+                        <span class="story-category">${firstNews[0].category}</span>
+                        <h1>${firstNews[0].title.substring(0, 100)}${firstNews[0].title.length > 100 ? '...' : ''}</h1>
+                        <p>${firstNews[0].description.substring(0, 150)}...</p>
+                        <div class="story-meta">${firstNews[0].published}</div>
+                    </div>
+                </div>
+                <div class="side-stories">`;
+            
+            // Остальные новости
+            firstNews.slice(1, 4).forEach(item => {
+                heroHtml += `
+                    <div class="side-item" onclick="window.location='/article.html?id=${item.id}'" 
+                         style="background: linear-gradient(135deg, var(--card-bg) 0%, var(--hover-bg) 100%); border: 1px solid var(--border-color); padding: 1rem;">
+                        <div class="side-item-content" style="width: 100%;">
+                            <div class="card-category" style="margin-bottom: 0.5rem; font-size: 0.8rem;">${getCategoryEmoji(item.category)} ${item.category}</div>
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">${item.title.substring(0, 70)}${item.title.length > 70 ? '...' : ''}</h3>
+                            <div class="time" style="font-size: 0.75rem;">${item.published}</div>
                         </div>
-                    `;
-                } else {
-                    heroHtml += `
-                        <div class="main-story" onclick="window.location='/article.html?id=${mainNews.id}'">
-                            <img src="${mainImageUrl}" alt="${mainNews.category}" loading="lazy"
-                                 onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-logo\\'>ТОЛК</div><div class=\\'placeholder-category\\'>${mainNews.category}</div></div>');">
-                            <div class="main-story-content">
-                                <span class="story-category">${mainNews.category}</span>
-                                <h2>${mainNews.title.substring(0, 100)}${mainNews.title.length > 100 ? '...' : ''}</h2>
-                                <p>${mainNews.description.substring(0, 150)}...</p>
-                                <div class="story-meta">${mainNews.published}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                heroHtml += `<div class="side-stories">`;
-                
-                sideNews.forEach(item => {
-                    const sideImageUrl = getNewsImage(item);
-                    
-                    if (sideImageUrl === 'placeholder') {
-                        heroHtml += `
-                            <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                                <div class="placeholder-image">
-                                    <div class="placeholder-small">ТОЛК</div>
-                                </div>
-                                <div class="side-item-content">
-                                    <h3>${item.title.substring(0, 50)}...</h3>
-                                    <div class="time">${item.published}</div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        heroHtml += `
-                            <div class="side-item" onclick="window.location='/article.html?id=${item.id}'">
-                                <img src="${sideImageUrl}" alt="${item.category}" loading="lazy"
-                                     onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\\'placeholder-image\\'><div class=\\'placeholder-small\\'>ТОЛК</div></div>');">
-                                <div class="side-item-content">
-                                    <h3>${item.title.substring(0, 50)}...</h3>
-                                    <div class="time">${item.published}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-                
-                heroHtml += '</div>';
-                document.getElementById('heroSection').innerHTML = heroHtml;
-            } else {
-                document.getElementById('heroSection').innerHTML = '';
-            }
+                    </div>
+                `;
+            });
+            
+            heroHtml += '</div>';
+            document.getElementById('heroSection').innerHTML = heroHtml;
         }
+    } else {
+        document.getElementById('heroSection').innerHTML = '';
+    }
+}
 
         function preloadNextPage(news, nextPage) {
             setTimeout(() => {
