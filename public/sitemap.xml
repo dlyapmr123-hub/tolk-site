@@ -50,6 +50,18 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://tolk-news.ru/article.html?id=32fd7c3e</loc>
+    <lastmod>2026-04-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=37bb4bf4</loc>
+    <lastmod>2026-04-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://tolk-news.ru/article.html?id=368cd4d1</loc>
     <lastmod>2026-04-11</lastmod>
     <changefreq>monthly</changefreq>
@@ -3033,18 +3045,6 @@
   </url>
   <url>
     <loc>https://tolk-news.ru/article.html?id=865f7826</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=aa94d1ab</loc>
-    <lastmod>2026-04-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=3820046f</loc>
     <lastmod>2026-04-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
