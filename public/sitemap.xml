@@ -3,51 +3,159 @@
   <!-- Главная страница -->
   <url>
     <loc>https://tolk-news.ru/</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Политика</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Экономика</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Технологии</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Авто</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Киберспорт</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Культура</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/?cat=Спорт</loc>
-    <lastmod>2026-06-16</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=7757b8c9</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=b38432b1</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=9407de4c</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=24316ed6</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=411242a3</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=214a851c</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=78db7a34</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=a457ca95</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=f53e4245</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=df283252</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=74145a95</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=9f1741b6</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=bf4c2578</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=e0ebc413</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=8ded051c</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=9f529d4d</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=938a9f02</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tolk-news.ru/article.html?id=76319c20</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tolk-news.ru/article.html?id=72253d04</loc>
@@ -2937,114 +3045,6 @@
   </url>
   <url>
     <loc>https://tolk-news.ru/article.html?id=7e37caa5</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=6a3cb1dd</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=52d9097d</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=c6fca2c7</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=951c0198</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=a02c42c0</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=5940d55f</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=f4b29931</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=05c7b137</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=3e5a96b2</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=951b15ac</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=39330c74</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=62f00df6</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=9904eead</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=43fb75ae</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=d0eb2791</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=fc98de11</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=16b66685</loc>
-    <lastmod>2026-06-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://tolk-news.ru/article.html?id=8cb0fb25</loc>
     <lastmod>2026-06-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
